@@ -18,6 +18,7 @@ use std::env;
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     // parsing was hacked together last minute :)
+    // information would be communicated oob
     let mut buyer_npub: String = String::new();
     let mut seller_npub: String = String::new();
     let mut coordinator_npub: String = String::new();
