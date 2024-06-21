@@ -13,8 +13,8 @@ struct PubkeyMessage {
 }
 
 impl NostrClient {
-    pub async fn new() -> anyhow::Result<Self> {
-        let keypair = Keys::parse(env::var("NOSTR_NSEC")?)?;
+    pub async fn new(nsec: &String) -> anyhow::Result<Self> {
+        let keypair = Keys::parse(nsec)?;
 
         let client = Client::new(&keypair);
 
@@ -32,6 +32,19 @@ impl NostrClient {
         Ok(Self { keypair, client })
     }
 
+    pub async fn get_npub(&self) -> anyhow::Result<String> {
+        Ok(self.keypair.public_key().to_bech32()?)
+    }
+
+    pub async fn decrypt_msg(&self, msg: &String, sender_pk: &PublicKey) -> Option<String> {
+        let decrypted =
+            nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
+        if let Ok(decrypted) = decrypted {
+            return Some(decrypted);
+        }
+        None
+    }
+
     pub async fn send_escrow_pubkeys(
         &self,
         receivers: (&String, &String),
@@ -43,10 +56,10 @@ impl NostrClient {
             trade_id_hex: hex::encode(id),
         })?;
         self.client
-            .send_private_msg(PublicKey::from_bech32(receivers.0)?, &message, None)
+            .send_direct_msg(PublicKey::from_bech32(receivers.0)?, &message, None)
             .await?;
         self.client
-            .send_private_msg(PublicKey::from_bech32(receivers.1)?, &message, None)
+            .send_direct_msg(PublicKey::from_bech32(receivers.1)?, &message, None)
             .await?;
         Ok(())
     }
@@ -57,9 +70,9 @@ impl NostrClient {
         coordinator_pk_bech32: &String,
     ) -> anyhow::Result<()> {
         let message = serde_json::to_string(contract)?;
-
+        dbg!("sending contract to coordinator...");
         self.client
-            .send_private_msg(
+            .send_direct_msg(
                 PublicKey::from_bech32(coordinator_pk_bech32)?,
                 &message,
                 None,
@@ -74,7 +87,7 @@ impl NostrClient {
         token: &String,
     ) -> anyhow::Result<()> {
         self.client
-            .send_private_msg(PublicKey::from_bech32(seller_npub)?, token, None)
+            .send_direct_msg(PublicKey::from_bech32(seller_npub)?, token, None)
             .await?;
         Ok(())
     }
