@@ -1,27 +1,27 @@
 {
 	"nodes":[
-		{"id":"5e048cc534759b63","x":120,"y":-30,"width":125,"height":60,"type":"text","text":"Seller"},
-		{"id":"ab8a3ebb4fe52e67","x":-340,"y":-30,"width":125,"height":60,"type":"text","text":"Buyer"},
-		{"id":"2528559e647089b3","x":-160,"y":280,"width":205,"height":60,"type":"text","text":"Escrow provider"},
-		{"id":"bcf1b6b4016d7e99","type":"text","text":"Seller","x":120,"y":700,"width":125,"height":60},
-		{"id":"e2e7cb968a503c66","x":340,"y":60,"width":302,"height":60,"color":"5","type":"text","text":"Conditions get agreed on OOB (Shopping client)"},
-		{"id":"063aaff2a901dfbf","x":320,"y":310,"width":302,"height":120,"color":"5","type":"text","text":"Provider compares conditions, saves conditions, generates new keypair for this trade"},
-		{"id":"48941c0f5c8543af","x":-720,"y":160,"width":250,"height":90,"color":"5","type":"text","text":"Communication uses JSON in NIP17 private direct messages"},
+		{"id":"5e048cc534759b63","type":"text","text":"Seller","x":120,"y":-30,"width":125,"height":60},
+		{"id":"ab8a3ebb4fe52e67","type":"text","text":"Buyer","x":-340,"y":-30,"width":125,"height":60},
+		{"id":"2528559e647089b3","type":"text","text":"Escrow provider","x":-160,"y":280,"width":205,"height":60},
+		{"id":"e2e7cb968a503c66","type":"text","text":"Conditions get agreed on OOB (Shopping client)","x":340,"y":60,"width":302,"height":60,"color":"5"},
+		{"id":"063aaff2a901dfbf","type":"text","text":"Provider compares conditions, saves conditions, generates new keypair for this trade","x":320,"y":310,"width":302,"height":120,"color":"5"},
+		{"id":"48941c0f5c8543af","type":"text","text":"Communication uses JSON in NIP17 private direct messages","x":-720,"y":160,"width":250,"height":90,"color":"5"},
 		{"id":"60352c80f4fee896","type":"text","text":"Seller","x":120,"y":860,"width":125,"height":60},
-		{"id":"e412651f323937ad","x":-315,"y":820,"width":250,"height":140,"color":"2","type":"text","text":"Escrow Token:\n* 2-of-3 threshold\n* timeout back to buyer"},
+		{"id":"e412651f323937ad","type":"text","text":"Escrow Token:\n* 2-of-3 threshold\n* timeout back to buyer","x":-315,"y":820,"width":250,"height":140,"color":"2"},
 		{"id":"5988242d1e82b75e","type":"text","text":"Seller","x":120,"y":1100,"width":125,"height":60},
-		{"id":"20ad5429f4e3734e","x":-315,"y":1080,"width":250,"height":100,"color":"4","type":"text","text":"Trade can continue (e.g. shipping goods)"},
-		{"id":"10d7b0e739730c43","type":"text","text":"Buyer","x":-560,"y":700,"width":125,"height":60}
+		{"id":"20ad5429f4e3734e","type":"text","text":"Trade can continue (e.g. shipping goods)","x":-315,"y":1080,"width":250,"height":100,"color":"4"},
+		{"id":"10d7b0e739730c43","type":"text","text":"Buyer","x":-560,"y":700,"width":125,"height":60},
+		{"id":"bcf1b6b4016d7e99","type":"text","text":"Seller","x":120,"y":700,"width":125,"height":60}
 	],
 	"edges":[
 		{"id":"1814711465e3bed5","fromNode":"ab8a3ebb4fe52e67","fromSide":"bottom","toNode":"2528559e647089b3","toSide":"left","label":"1. Send escrow conditions"},
-		{"id":"a6365c1c6b7dd604","fromNode":"5e048cc534759b63","fromSide":"bottom","toNode":"2528559e647089b3","toSide":"right","label":"2. Send escrow conditions"},
 		{"id":"0f67c63368f089bd","fromNode":"2528559e647089b3","fromSide":"bottom","toNode":"bcf1b6b4016d7e99","toSide":"top","label":"2. Provider ecash pubkey"},
 		{"id":"b5d1529ef4d95071","fromNode":"2528559e647089b3","fromSide":"bottom","toNode":"10d7b0e739730c43","toSide":"top","label":"2. Provider ecash pubkey"},
 		{"id":"737142c4c23ad2d5","fromNode":"2528559e647089b3","fromSide":"bottom","toNode":"063aaff2a901dfbf","toSide":"left"},
 		{"id":"62be84ad56ab0afc","fromNode":"10d7b0e739730c43","fromSide":"bottom","toNode":"e412651f323937ad","toSide":"left"},
 		{"id":"bef74755bf1b52a3","fromNode":"e412651f323937ad","fromSide":"right","toNode":"60352c80f4fee896","toSide":"left"},
 		{"id":"9fdbd8e3d9edacbe","fromNode":"60352c80f4fee896","fromSide":"bottom","toNode":"5988242d1e82b75e","toSide":"top","label":"Validates token"},
-		{"id":"43ce633db1a395a3","fromNode":"5988242d1e82b75e","fromSide":"left","toNode":"20ad5429f4e3734e","toSide":"right"}
+		{"id":"43ce633db1a395a3","fromNode":"5988242d1e82b75e","fromSide":"left","toNode":"20ad5429f4e3734e","toSide":"right"},
+		{"id":"a6365c1c6b7dd604","fromNode":"5e048cc534759b63","fromSide":"bottom","toNode":"2528559e647089b3","toSide":"right","label":"2. Send escrow conditions"}
 	]
 }

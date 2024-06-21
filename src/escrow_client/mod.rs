@@ -30,21 +30,21 @@ impl Trader {
     }
 
     async fn buyer_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
-        let token = config.wallet.create_escrow_token(&config.contract).await?;
+        let token = config.wallet.create_escrow_token(config).await?;
 
         config
             .nostr_client
             .submit_trade_token_to_seller(&config.contract.npub_seller, &token)
             .await?;
 
-        // to be continued
+        // either send signature or begin dispute
         Ok(())
     }
 
     async fn seller_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
-        let escrow_token = config.await_trade_token().await?;
+        let escrow_token = config.await_and_validate_trade_token().await?;
 
-        // to be continued
+        // await signature or begin dispute
         Ok(())
     }
 }
@@ -104,7 +104,7 @@ impl EscrowUser {
         trade_beginning_ts: Timestamp,
         provider_npub: &String,
     ) -> anyhow::Result<PublicKey> {
-        let filter_note = Filter::new().kind(Kind::PrivateDirectMessage);
+        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
         let filter_timestamp = Filter::new().since(trade_beginning_ts);
         let filter_author = Filter::new().author(nostr_sdk::PublicKey::from_bech32(provider_npub)?);
         nostr_client
@@ -116,18 +116,23 @@ impl EscrowUser {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                dbg!("Received event: {:?}", &event.content);
-                if let Ok(potential_mint_pk) = Self::parse_escrow_pk(&event.content).await {
-                    nostr_client.client.unsubscribe_all().await;
-                    return Ok(potential_mint_pk);
+                if let Some(decrypted) = nostr_client
+                    .decrypt_msg(&event.content, &event.author())
+                    .await
+                {
+                    dbg!("Received event: {:?}", &decrypted);
+                    if let Ok(potential_mint_pk) = Self::parse_escrow_pk(&event.content).await {
+                        nostr_client.client.unsubscribe_all().await;
+                        return Ok(potential_mint_pk);
+                    }
                 }
             }
         }
         Err(anyhow!("No valid escrow provider public key received"))
     }
 
-    async fn await_trade_token(&self) -> anyhow::Result<cdk::nuts::Token> {
-        let filter_note = Filter::new().kind(Kind::PrivateDirectMessage);
+    async fn await_and_validate_trade_token(&self) -> anyhow::Result<cdk::nuts::Token> {
+        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
         let filter_timestamp =
             Filter::new().since(Timestamp::from(self.contract.trade_beginning_ts));
         let filter_author = Filter::new().author(nostr_sdk::PublicKey::from_bech32(
@@ -142,13 +147,17 @@ impl EscrowUser {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                dbg!("Received event: {:?}", &event.content);
-                if let Ok(escrow_token) = self
-                    .wallet
-                    .validate_escrow_token(&event.content, &self.contract)
+                if let Some(decrypted) = self
+                    .nostr_client
+                    .decrypt_msg(&event.content, &event.author())
                     .await
                 {
-                    return Ok(escrow_token);
+                    println!("Received event: {:?}", &decrypted);
+                    if let Ok(escrow_token) =
+                        self.wallet.validate_escrow_token(&decrypted, &self).await
+                    {
+                        return Ok(escrow_token);
+                    }
                 }
             }
         }

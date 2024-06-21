@@ -3,7 +3,7 @@ use cdk::nuts::SecretKey;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub struct EscrowProvider {
     nostr_client: NostrClient,
@@ -41,22 +41,34 @@ impl EscrowProvider {
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
-        let filter_note = Filter::new().kind(Kind::PrivateDirectMessage);
+        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
+
+        let filter_self = Filter::new().custom_tag(
+            SingleLetterTag::lowercase(Alphabet::P),
+            [PublicKey::from_bech32(&self.nostr_client.get_npub().await?)?.to_hex()],
+        );
+
         self.nostr_client
             .client
-            .subscribe(vec![filter_note], None)
+            .subscribe(vec![filter_note, filter_self], None)
             .await;
         let mut notifications = self.nostr_client.client.notifications();
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                dbg!("Received event: {:?}", &event.content);
-                if let Ok((contract_hash, contract)) = self.parse(&event.content).await {
-                    if self.pending_contracts.contains_key(&contract_hash) {
-                        self.pending_contracts.remove(&contract_hash);
-                        self.begin_trade(&contract_hash, &contract).await?;
-                    } else {
-                        self.pending_contracts.insert(contract_hash, contract);
+                if let Some(decrypted) = self
+                    .nostr_client
+                    .decrypt_msg(&event.content, &event.author())
+                    .await
+                {
+                    println!("Received event: {:?}", &decrypted);
+                    if let Ok((contract_hash, contract)) = self.parse(&event.content).await {
+                        if self.pending_contracts.contains_key(&contract_hash) {
+                            self.pending_contracts.remove(&contract_hash);
+                            self.begin_trade(&contract_hash, &contract).await?;
+                        } else {
+                            self.pending_contracts.insert(contract_hash, contract);
+                        }
                     }
                 }
             }
