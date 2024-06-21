@@ -17,6 +17,7 @@ use std::env;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
+    // parsing was hacked together last minute :)
     let mut buyer_npub: String = String::new();
     let mut seller_npub: String = String::new();
     let mut coordinator_npub: String = String::new();
