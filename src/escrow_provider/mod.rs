@@ -3,7 +3,7 @@ use cdk::nuts::SecretKey;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct EscrowProvider {
     nostr_client: NostrClient,
