@@ -12,7 +12,6 @@ use escrow_client::{EscrowUser, Trader};
 use escrow_provider::{EscrowProvider, TradeContract};
 use nostr::NostrClient;
 use nostr_sdk::prelude::*;
-use std::env;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
