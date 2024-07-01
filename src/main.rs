@@ -4,6 +4,8 @@ mod escrow_client;
 mod escrow_provider;
 mod nostr;
 
+use std::env;
+
 use anyhow::{anyhow, Result};
 use cli::get_user_input;
 use dotenv::dotenv;
@@ -18,43 +20,45 @@ async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     // parsing was hacked together last minute :)
     // information would be communicated oob
-    let mut buyer_npub: String = String::new();
-    let mut seller_npub: String = String::new();
-    let mut coordinator_npub: String = String::new();
+    let mut buyer_npub: String = env::var("BUYER_NPUB")?;
+    let mut seller_npub: String = env::var("SELLER_NPUB")?;
+    let coordinator_npub: String = env::var("ESCROW_NPUB")?;
     let ecash_wallet = EcashWallet::new().await?;
     let mut seller_ecash_pubkey: String = String::new();
     let mut buyer_ecash_pubkey: String = String::new();
-    let nostr_client = NostrClient::new(&get_user_input("Enter nostr nsec: ").await?).await?;
+    let nostr_client: NostrClient;
 
-    let mode = match get_user_input("Select mode: buyer, seller, provider: ")
+    let mode = match get_user_input("Select mode: (1) buyer, (2) seller, (3) provider: ")
         .await?
         .as_str()
     {
-        "buyer" => {
+        "1" => {
+            nostr_client = NostrClient::new(&env::var("BUYER_NSEC")?).await?;
             buyer_npub = nostr_client.get_npub().await?;
-            println!("Buyer npub: {}", &buyer_npub);
-            seller_npub = get_user_input("Enter seller's npub: ").await?;
+            //println!("Buyer npub: {}", &buyer_npub);
             seller_ecash_pubkey = get_user_input("Enter seller's ecash pubkey: ").await?;
-            coordinator_npub = get_user_input("Enter coordinator's npub: ").await?;
             buyer_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
             String::from("buyer")
         }
-        "seller" => {
+        "2" => {
+            nostr_client = NostrClient::new(&env::var("SELLER_NSEC")?).await?;
             seller_npub = nostr_client.get_npub().await?;
-            println!("Seller npub: {}", &seller_npub);
+            //println!("Seller npub: {}", &seller_npub);
             seller_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
-            buyer_npub = get_user_input("Enter buyer's npub: ").await?;
             buyer_ecash_pubkey = get_user_input("Enter buyer's ecash pubkey: ").await?;
-            coordinator_npub = get_user_input("Enter coordinator's npub: ").await?;
             String::from("seller")
         }
-        "provider" => {
+        "3" => {
+            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?;
             println!("Coordinator npub: {}", nostr_client.get_npub().await?);
             let mut escrow_provider = EscrowProvider::setup(nostr_client, ecash_wallet).await?;
             escrow_provider.run().await?;
             return Ok(());
         }
-        _ => String::from("none"),
+        _ => {
+            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?;//irrelevant
+            String::from("none")
+        }
     };
 
     let contract = TradeContract {
