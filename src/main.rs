@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
         }
         "3" => {
             nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?;
-            println!("Coordinator npub: {}", nostr_client.get_npub().await?);
+            //println!("Coordinator npub: {}", nostr_client.get_npub().await?);
             let mut escrow_provider = EscrowProvider::setup(nostr_client, ecash_wallet).await?;
             escrow_provider.run().await?;
             return Ok(());
