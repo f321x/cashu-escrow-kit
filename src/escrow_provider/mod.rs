@@ -45,7 +45,7 @@ impl EscrowProvider {
 
         let filter_self = Filter::new().custom_tag(
             SingleLetterTag::lowercase(Alphabet::P),
-            [PublicKey::from_bech32(&self.nostr_client.get_npub().await?)?.to_hex()],
+            [PublicKey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
         );
 
         self.nostr_client
