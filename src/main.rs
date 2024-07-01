@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     {
         "1" => {
             nostr_client = NostrClient::new(&env::var("BUYER_NSEC")?).await?;
-            buyer_npub = nostr_client.get_npub().await?;
+            buyer_npub = nostr_client.get_npub()?;
             //println!("Buyer npub: {}", &buyer_npub);
             seller_ecash_pubkey = get_user_input("Enter seller's ecash pubkey: ").await?;
             buyer_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
         }
         "2" => {
             nostr_client = NostrClient::new(&env::var("SELLER_NSEC")?).await?;
-            seller_npub = nostr_client.get_npub().await?;
+            seller_npub = nostr_client.get_npub()?;
             //println!("Seller npub: {}", &seller_npub);
             seller_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
             buyer_ecash_pubkey = get_user_input("Enter buyer's ecash pubkey: ").await?;
@@ -78,10 +78,8 @@ async fn main() -> anyhow::Result<()> {
         EscrowUser::new(contract, ecash_wallet, nostr_client, coordinator_npub).await?;
 
     match mode.as_str() {
-        "buyer" => Trader::Buyer(escrow_user).init_trade().await?,
-        "seller" => Trader::Seller(escrow_user).init_trade().await?,
+        "buyer" => Trader::Buyer(escrow_user).init_trade().await,
+        "seller" => Trader::Seller(escrow_user).init_trade().await,
         _ => return Err(anyhow!("Invalid mode")),
     }
-
-    Ok(())
 }
