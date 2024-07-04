@@ -1,5 +1,6 @@
 use super::*;
 use cdk::nuts::SecretKey;
+use hashes::hex::DisplayHex;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -41,16 +42,17 @@ impl EscrowProvider {
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
-        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
-
-        let filter_self = Filter::new().custom_tag(
-            SingleLetterTag::lowercase(Alphabet::P),
-            [PublicKey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
-        );
+        let filter_note = Filter::new()
+            .kind(Kind::EncryptedDirectMessage)
+            .custom_tag(
+                SingleLetterTag::lowercase(Alphabet::P),
+                [PublicKey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
+            )
+            .since(Timestamp::now());
 
         self.nostr_client
             .client
-            .subscribe(vec![filter_note, filter_self], None)
+            .subscribe(vec![filter_note], None)
             .await;
         let mut notifications = self.nostr_client.client.notifications();
 
@@ -93,6 +95,7 @@ impl EscrowProvider {
         contract_hash: &[u8; 32],
         trade: &TradeContract,
     ) -> anyhow::Result<()> {
+        println!("Beginning trade: {}", contract_hash.to_hex_string(hashes::hex::Case::Lower));
         let contract_secret = SecretKey::generate();
         self.active_contracts.insert(
             contract_hash.clone(),
