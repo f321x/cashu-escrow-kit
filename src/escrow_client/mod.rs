@@ -44,6 +44,9 @@ impl Trader {
     async fn seller_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
         let escrow_token = config.await_and_validate_trade_token().await?;
 
+        // send product and proof of delivery (oracle) to seller
+        
+
         // await signature or begin dispute
         Ok(())
     }
