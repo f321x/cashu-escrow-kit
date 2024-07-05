@@ -63,7 +63,7 @@ impl EscrowProvider {
                     .decrypt_msg(&event.content, &event.author())
                     .await
                 {
-                    println!("Received event: {:?}", &decrypted);
+                    dbg!("Received event: {:?}", &decrypted);
                     if let Ok((contract_hash, contract)) = self.parse(decrypted.as_str()).await {
                         if self.pending_contracts.contains_key(&contract_hash) {
                             self.pending_contracts.remove(&contract_hash);
@@ -95,7 +95,7 @@ impl EscrowProvider {
         contract_hash: &[u8; 32],
         trade: &TradeContract,
     ) -> anyhow::Result<()> {
-        println!("Beginning trade: {}", contract_hash.to_hex_string(hashes::hex::Case::Lower));
+        dbg!("Beginning trade: {}", contract_hash.to_hex_string(hashes::hex::Case::Lower));
         let contract_secret = SecretKey::generate();
         self.active_contracts.insert(
             contract_hash.clone(),
