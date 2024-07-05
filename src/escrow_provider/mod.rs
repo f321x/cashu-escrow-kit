@@ -64,7 +64,7 @@ impl EscrowProvider {
                     .await
                 {
                     println!("Received event: {:?}", &decrypted);
-                    if let Ok((contract_hash, contract)) = self.parse(&event.content).await {
+                    if let Ok((contract_hash, contract)) = self.parse(decrypted.as_str()).await {
                         if self.pending_contracts.contains_key(&contract_hash) {
                             self.pending_contracts.remove(&contract_hash);
                             self.begin_trade(&contract_hash, &contract).await?;
