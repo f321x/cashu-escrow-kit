@@ -107,12 +107,13 @@ impl EscrowUser {
         trade_beginning_ts: Timestamp,
         provider_npub: &String,
     ) -> anyhow::Result<PublicKey> {
-        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
-        let filter_timestamp = Filter::new().since(trade_beginning_ts);
-        let filter_author = Filter::new().author(nostr_sdk::PublicKey::from_bech32(provider_npub)?);
+        let filter_note = Filter::new()
+            .kind(Kind::EncryptedDirectMessage)
+            .since(trade_beginning_ts)
+            .author(nostr_sdk::PublicKey::from_bech32(provider_npub)?);
         nostr_client
             .client
-            .subscribe(vec![filter_note, filter_timestamp, filter_author], None)
+            .subscribe(vec![filter_note], None)
             .await;
 
         let mut notifications = nostr_client.client.notifications();
@@ -135,15 +136,13 @@ impl EscrowUser {
     }
 
     async fn await_and_validate_trade_token(&self) -> anyhow::Result<cdk::nuts::Token> {
-        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
-        let filter_timestamp =
-            Filter::new().since(Timestamp::from(self.contract.trade_beginning_ts));
-        let filter_author = Filter::new().author(nostr_sdk::PublicKey::from_bech32(
-            &self.contract.npub_buyer,
-        )?);
+        let filter_note = Filter::new()
+            .kind(Kind::EncryptedDirectMessage)
+            .since(Timestamp::from(self.contract.trade_beginning_ts))
+            .author(nostr_sdk::PublicKey::from_bech32(&self.contract.npub_buyer,)?);
         self.nostr_client
             .client
-            .subscribe(vec![filter_note, filter_timestamp, filter_author], None)
+            .subscribe(vec![filter_note], None)
             .await;
 
         let mut notifications = self.nostr_client.client.notifications();
@@ -155,7 +154,7 @@ impl EscrowUser {
                     .decrypt_msg(&event.content, &event.author())
                     .await
                 {
-                    println!("Received event: {:?}", &decrypted);
+                    dbg!("Received token event: {:?}", &decrypted);
                     if let Ok(escrow_token) =
                         self.wallet.validate_escrow_token(&decrypted, &self).await
                     {
