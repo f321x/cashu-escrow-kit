@@ -32,7 +32,7 @@ impl NostrClient {
         Ok(Self { keypair, client })
     }
 
-    pub async fn get_npub(&self) -> anyhow::Result<String> {
+    pub fn get_npub(&self) -> anyhow::Result<String> {
         Ok(self.keypair.public_key().to_bech32()?)
     }
 

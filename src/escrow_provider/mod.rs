@@ -1,5 +1,6 @@
 use super::*;
 use cdk::nuts::SecretKey;
+use hashes::hex::DisplayHex;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -41,16 +42,17 @@ impl EscrowProvider {
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
-        let filter_note = Filter::new().kind(Kind::EncryptedDirectMessage);
-
-        let filter_self = Filter::new().custom_tag(
-            SingleLetterTag::lowercase(Alphabet::P),
-            [PublicKey::from_bech32(&self.nostr_client.get_npub().await?)?.to_hex()],
-        );
+        let filter_note = Filter::new()
+            .kind(Kind::EncryptedDirectMessage)
+            .custom_tag(
+                SingleLetterTag::lowercase(Alphabet::P),
+                [PublicKey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
+            )
+            .since(Timestamp::now());
 
         self.nostr_client
             .client
-            .subscribe(vec![filter_note, filter_self], None)
+            .subscribe(vec![filter_note], None)
             .await;
         let mut notifications = self.nostr_client.client.notifications();
 
@@ -61,8 +63,8 @@ impl EscrowProvider {
                     .decrypt_msg(&event.content, &event.author())
                     .await
                 {
-                    println!("Received event: {:?}", &decrypted);
-                    if let Ok((contract_hash, contract)) = self.parse(&event.content).await {
+                    dbg!("Received event: {:?}", &decrypted);
+                    if let Ok((contract_hash, contract)) = self.parse(decrypted.as_str()).await {
                         if self.pending_contracts.contains_key(&contract_hash) {
                             self.pending_contracts.remove(&contract_hash);
                             self.begin_trade(&contract_hash, &contract).await?;
@@ -93,6 +95,7 @@ impl EscrowProvider {
         contract_hash: &[u8; 32],
         trade: &TradeContract,
     ) -> anyhow::Result<()> {
+        dbg!("Beginning trade: {}", contract_hash.to_hex_string(hashes::hex::Case::Lower));
         let contract_secret = SecretKey::generate();
         self.active_contracts.insert(
             contract_hash.clone(),
