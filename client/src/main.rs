@@ -1,16 +1,13 @@
 mod cli;
 mod ecash;
-mod escrow_client;
-mod escrow_provider;
 mod nostr;
 
 use std::env;
 
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use cli::get_user_input;
 use dotenv::dotenv;
 use ecash::EcashWallet;
-use escrow_client::{EscrowUser, Trader};
 use escrow_provider::{EscrowProvider, TradeContract};
 use nostr::NostrClient;
 use nostr_sdk::prelude::*;
@@ -28,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     let mut buyer_ecash_pubkey: String = String::new();
     let nostr_client: NostrClient;
 
-    let mode = match get_user_input("Select mode: (1) buyer, (2) seller, (3) provider: ")
+    let mode = match get_user_input("Select mode: (1) buyer, (2) seller: ")
         .await?
         .as_str()
     {
@@ -48,15 +45,8 @@ async fn main() -> anyhow::Result<()> {
             buyer_ecash_pubkey = get_user_input("Enter buyer's ecash pubkey: ").await?;
             String::from("seller")
         }
-        "3" => {
-            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?;
-            //println!("Coordinator npub: {}", nostr_client.get_npub().await?);
-            let mut escrow_provider = EscrowProvider::setup(nostr_client, ecash_wallet).await?;
-            escrow_provider.run().await?;
-            return Ok(());
-        }
         _ => {
-            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?;//irrelevant
+            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?; //irrelevant
             String::from("none")
         }
     };
