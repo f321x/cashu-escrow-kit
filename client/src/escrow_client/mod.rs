@@ -45,7 +45,6 @@ impl Trader {
         let escrow_token = config.await_and_validate_trade_token().await?;
 
         // send product and proof of delivery (oracle) to seller
-        
 
         // await signature or begin dispute
         Ok(())
@@ -111,10 +110,7 @@ impl EscrowUser {
             .kind(Kind::EncryptedDirectMessage)
             .since(trade_beginning_ts)
             .author(nostr_sdk::PublicKey::from_bech32(provider_npub)?);
-        nostr_client
-            .client
-            .subscribe(vec![filter_note], None)
-            .await;
+        nostr_client.client.subscribe(vec![filter_note], None).await;
 
         let mut notifications = nostr_client.client.notifications();
 
@@ -139,7 +135,9 @@ impl EscrowUser {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
             .since(Timestamp::from(self.contract.trade_beginning_ts))
-            .author(nostr_sdk::PublicKey::from_bech32(&self.contract.npub_buyer,)?);
+            .author(nostr_sdk::PublicKey::from_bech32(
+                &self.contract.npub_buyer,
+            )?);
         self.nostr_client
             .client
             .subscribe(vec![filter_note], None)
