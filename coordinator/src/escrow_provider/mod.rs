@@ -1,29 +1,17 @@
 use super::*;
+use birdseed_escrow::TradeContract;
 use cdk::nuts::SecretKey;
+use nostr_sdk as ndk;
+use ndk::prelude::*;
 use hashes::hex::DisplayHex;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
-use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 pub struct EscrowProvider {
     nostr_client: NostrClient,
-    wallet: EcashWallet,
     pending_contracts: HashMap<[u8; 32], TradeContract>, // k: hash of contract json
     active_contracts: HashMap<[u8; 32], ActiveTade>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TradeContract {
-    pub trade_beginning_ts: u64,
-    pub trade_description: String,
-    pub trade_mint_url: String,
-    pub trade_amount_sat: u64,
-    pub npub_seller: String,
-    pub npub_buyer: String,
-    pub time_limit: u64,
-    pub seller_ecash_public_key: String,
-    pub buyer_ecash_public_key: String,
 }
 
 pub struct ActiveTade {
@@ -32,10 +20,9 @@ pub struct ActiveTade {
 }
 
 impl EscrowProvider {
-    pub async fn setup(nostr_client: NostrClient, wallet: EcashWallet) -> anyhow::Result<Self> {
+    pub async fn setup(nostr_client: NostrClient) -> anyhow::Result<Self> {
         Ok(Self {
             nostr_client,
-            wallet,
             pending_contracts: HashMap::new(),
             active_contracts: HashMap::new(),
         })

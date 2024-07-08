@@ -1,6 +1,7 @@
 mod cli;
 mod ecash;
 mod nostr;
+mod escrow_client;
 
 use std::env;
 
@@ -8,7 +9,8 @@ use anyhow::anyhow;
 use cli::get_user_input;
 use dotenv::dotenv;
 use ecash::EcashWallet;
-use escrow_provider::{EscrowProvider, TradeContract};
+use birdseed_escrow::TradeContract;
+use escrow_client::{EscrowUser, Trader};
 use nostr::NostrClient;
 use nostr_sdk::prelude::*;
 
