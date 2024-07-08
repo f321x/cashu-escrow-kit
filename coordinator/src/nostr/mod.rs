@@ -1,4 +1,6 @@
-use super::*;
+use birdseed_escrow::TradeContract;
+use nostr_sdk as ndk;
+use ndk::prelude::*;
 use serde::Serialize;
 
 pub struct NostrClient {
@@ -38,7 +40,7 @@ impl NostrClient {
 
     pub async fn decrypt_msg(&self, msg: &String, sender_pk: &PublicKey) -> Option<String> {
         let decrypted =
-            nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
+            ndk::nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
         if let Ok(decrypted) = decrypted {
             return Some(decrypted);
         }

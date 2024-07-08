@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::escrow_client::EscrowUser;
+use escrow_client::EscrowUser;
 use cdk::secp256k1::rand::Rng;
 use cdk::{
     amount::SplitTarget,
@@ -25,7 +25,7 @@ impl EcashWallet {
         let seed = rand::thread_rng().gen::<[u8; 32]>();
         println!("Trade ecash pubkey: {}", trade_pubkey);
 
-        let wallet = Wallet::new(Arc::new(localstore), &seed, vec![]);
+        let wallet = Wallet::new("", CurrencyUnit::Sat, Arc::new(localstore), &seed);
 
         Ok(Self {
             secret,
@@ -46,13 +46,13 @@ impl EcashWallet {
 
         let spending_conditions = SpendingConditions::new_p2pk(
             self.secret.public_key(),
-            Conditions::new(
+            Some(Conditions::new(
                 Some(user.contract.time_limit),
                 Some(public_keys),
                 Some(vec![buyer_pubkey]),
                 Some(2),
                 Some(SigFlag::SigAll),
-            )?,
+            )?)
         );
         Ok(spending_conditions)
     }
@@ -62,8 +62,6 @@ impl EcashWallet {
         let token = self
             .wallet
             .send(
-                &cdk::UncheckedUrl::new(&user.contract.trade_mint_url),
-                CurrencyUnit::Sat,
                 user.contract.trade_amount_sat.into(),
                 Some(user.contract.trade_description.clone()),
                 Some(spending_conditions),

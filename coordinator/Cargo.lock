@@ -339,8 +339,9 @@ checksum = "96c51067fd44124faa7f870b4b1c969379ad32b2ba805aa959430ceaa384f695"
 
 [[package]]
 name = "cdk"
-version = "0.1.0"
-source = "git+https://github.com/cashubtc/cdk#b066b92a8d44cfc58bb8eb128a2aace600068fef"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "246c8886d8349034b99b9faa2cf3bdce510db4802d52043048858522d0999b06"
 dependencies = [
  "async-trait",
  "base64 0.22.1",

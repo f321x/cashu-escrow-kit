@@ -16,7 +16,7 @@ pub struct EscrowUser {
 }
 
 impl Trader {
-    pub async fn init_trade(&self) -> Result<()> {
+    pub async fn init_trade(&self) -> anyhow::Result<()> {
         match self {
             Trader::Buyer(config) => {
                 self.buyer_pipeline(config).await?;

@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 nostr-sdk = { version = "0.32.0", features = ["nip04"] }
-cdk = { git = "https://github.com/cashubtc/cdk" }
+cdk = "0.1.1"
 dotenv = "0.15.0"
 anyhow = "1.0.86"
 tokio = "1.38.0"
