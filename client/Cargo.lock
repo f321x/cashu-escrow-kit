@@ -201,21 +201,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "birdseed-escrow"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cdk",
- "dotenv",
- "nostr-sdk",
- "rand",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
-]
-
-[[package]]
 name = "bitcoin"
 version = "0.30.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -421,14 +406,26 @@ name = "client"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "birdseed-escrow",
  "cdk",
+ "common",
  "dotenv",
  "nostr-sdk",
  "rand",
  "serde",
  "serde_json",
  "sha2",
+ "tokio",
+]
+
+[[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cdk",
+ "nostr-sdk",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

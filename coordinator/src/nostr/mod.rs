@@ -1,4 +1,4 @@
-use birdseed_escrow::TradeContract;
+use common::TradeContract;
 use nostr_sdk as ndk;
 use ndk::prelude::*;
 use serde::Serialize;
