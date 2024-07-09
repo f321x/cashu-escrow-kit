@@ -206,6 +206,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cdk",
+ "common",
  "dotenv",
  "nostr-sdk",
  "rand",
@@ -414,6 +415,18 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
+]
+
+[[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cdk",
+ "nostr-sdk",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

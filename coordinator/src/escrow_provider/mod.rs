@@ -1,5 +1,5 @@
 use super::*;
-use birdseed_escrow::TradeContract;
+use common::TradeContract;
 use cdk::nuts::SecretKey;
 use nostr_sdk as ndk;
 use ndk::prelude::*;
