@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "birdseed_client"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,4 +16,4 @@ serde = "1.0.203"
 serde_json = "1.0.117"
 sha2 = "0.10.8"
 
-common = { path = "../common" }
+birdseed_common = { path = "../common" }

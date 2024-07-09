@@ -4,7 +4,7 @@ use std::env;
 
 use dotenv::dotenv;
 use escrow_provider::EscrowProvider;
-use common::nostr::NostrClient;
+use birdseed_common::nostr::NostrClient;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

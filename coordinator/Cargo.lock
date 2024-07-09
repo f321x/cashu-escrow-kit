@@ -201,12 +201,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "birdseed-escrow"
+name = "birdseed_common"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "cdk",
- "common",
+ "nostr-sdk",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "birdseed_escrow"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "birdseed_common",
+ "cdk",
  "dotenv",
  "nostr-sdk",
  "rand",
@@ -415,18 +427,6 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
-]
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cdk",
- "nostr-sdk",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
