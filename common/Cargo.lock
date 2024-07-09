@@ -201,6 +201,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "birdseed_common"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cdk",
+ "nostr-sdk",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "bitcoin"
 version = "0.30.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -399,18 +411,6 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
-]
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "cdk",
- "nostr-sdk",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

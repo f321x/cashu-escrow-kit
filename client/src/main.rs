@@ -4,6 +4,7 @@ mod escrow_client;
 use std::env;
 
 use anyhow::anyhow;
+use birdseed_common as common;
 use common::cli::get_user_input;
 use dotenv::dotenv;
 use ecash::EcashWallet;
