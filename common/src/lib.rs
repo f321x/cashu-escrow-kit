@@ -12,3 +12,6 @@ pub struct TradeContract {
     pub seller_ecash_public_key: String,
     pub buyer_ecash_public_key: String,
 }
+
+pub mod cli;
+pub mod nostr;

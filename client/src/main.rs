@@ -1,17 +1,15 @@
-mod cli;
 mod ecash;
-mod nostr;
 mod escrow_client;
 
 use std::env;
 
 use anyhow::anyhow;
-use cli::get_user_input;
+use common::cli::get_user_input;
 use dotenv::dotenv;
 use ecash::EcashWallet;
 use common::TradeContract;
 use escrow_client::{EscrowUser, Trader};
-use nostr::NostrClient;
+use common::nostr::NostrClient;
 use nostr_sdk::prelude::*;
 
 #[tokio::main]
