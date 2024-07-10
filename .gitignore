@@ -1,1 +1,4 @@
 /target
+/coordinator/target
+/client/target
+/common/target

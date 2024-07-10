@@ -1,4 +1,6 @@
-use super::*;
+use crate::TradeContract;
+use nostr_sdk as ndk;
+use ndk::prelude::*;
 use serde::Serialize;
 
 pub struct NostrClient {
@@ -8,7 +10,7 @@ pub struct NostrClient {
 
 #[derive(Serialize)]
 struct PubkeyMessage {
-    escrow_provider_pubkey: String,
+    escrow_coordinator_pubkey: String,
     trade_id_hex: String,
 }
 
@@ -38,7 +40,7 @@ impl NostrClient {
 
     pub async fn decrypt_msg(&self, msg: &String, sender_pk: &PublicKey) -> Option<String> {
         let decrypted =
-            nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
+            ndk::nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
         if let Ok(decrypted) = decrypted {
             return Some(decrypted);
         }
@@ -52,7 +54,7 @@ impl NostrClient {
         trade_pk: &String,
     ) -> anyhow::Result<()> {
         let message = serde_json::to_string(&PubkeyMessage {
-            escrow_provider_pubkey: trade_pk.clone(),
+            escrow_coordinator_pubkey: trade_pk.clone(),
             trade_id_hex: hex::encode(id),
         })?;
         self.client

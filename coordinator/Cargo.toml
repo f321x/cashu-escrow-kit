@@ -1,5 +1,5 @@
 [package]
-name = "birdseed-escrow"
+name = "cashu_escrow_coordinator"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 nostr-sdk = { version = "0.32.0", features = ["nip04"] }
-cdk = { git = "https://github.com/cashubtc/cdk" }
+cdk = "0.1.1"
 dotenv = "0.15.0"
 anyhow = "1.0.86"
 tokio = "1.38.0"
@@ -15,6 +15,8 @@ rand = "0.8.5"
 serde = "1.0.203"
 serde_json = "1.0.117"
 sha2 = "0.10.8"
+
+cashu_escrow_common = { path = "../common" }
 
 [profile.release]
 lto = true
