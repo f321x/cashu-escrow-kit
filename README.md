@@ -19,7 +19,7 @@ This makes it possible to separate away the escrow coordinator from the trading 
 
 ## Protocol Overview
 
-![Protocol Overview Picture](Protocol-Overview.png)
+![Protocol Overview Picture](docs/obsidian_vault/Protocol-Overview.png)
 
 #### Additions and thoughts
 
