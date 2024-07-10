@@ -8,8 +8,8 @@ pub enum Trader {
 
 pub struct EscrowUser {
     pub trade_beginning_ts: Timestamp,
-    pub escrow_provider_npub: String,
-    pub escrow_provider_cashu_pk: PublicKey,
+    pub escrow_coordinator_npub: String,
+    pub escrow_coordinator_cashu_pk: PublicKey,
     pub contract: TradeContract,
     pub wallet: EcashWallet,
     pub nostr_client: NostrClient,
@@ -56,21 +56,21 @@ impl EscrowUser {
         contract: TradeContract,
         wallet: EcashWallet,
         nostr_client: NostrClient,
-        escrow_provider_npub: String,
+        escrow_coordinator_npub: String,
     ) -> anyhow::Result<Self> {
         let trade_beginning_ts = Timestamp::from(contract.trade_beginning_ts);
-        let escrow_provider_cashu_pk = Self::common_flow(
+        let escrow_coordinator_cashu_pk = Self::common_flow(
             &contract,
-            &escrow_provider_npub,
+            &escrow_coordinator_npub,
             &nostr_client,
             trade_beginning_ts,
         )
         .await?;
 
         Ok(Self {
-            escrow_provider_npub,
+            escrow_coordinator_npub,
             trade_beginning_ts,
-            escrow_provider_cashu_pk,
+            escrow_coordinator_cashu_pk,
             contract,
             wallet,
             nostr_client,
@@ -79,21 +79,21 @@ impl EscrowUser {
 
     async fn common_flow(
         contract: &TradeContract,
-        escrow_provider_npub: &String,
+        escrow_coordinator_npub: &String,
         nostr_client: &NostrClient,
         trade_beginning_ts: Timestamp,
     ) -> anyhow::Result<PublicKey> {
         nostr_client
-            .send_escrow_contract(contract, escrow_provider_npub)
+            .send_escrow_contract(contract, escrow_coordinator_npub)
             .await?;
 
-        let escrow_provider_pk = Self::receive_escrow_provider_pk(
+        let escrow_coordinator_pk = Self::receive_escrow_coordinator_pk(
             nostr_client,
             trade_beginning_ts,
-            escrow_provider_npub,
+            escrow_coordinator_npub,
         )
         .await?;
-        Ok(escrow_provider_pk)
+        Ok(escrow_coordinator_pk)
     }
 
     async fn parse_escrow_pk(pk: &String) -> anyhow::Result<PublicKey> {
@@ -101,15 +101,15 @@ impl EscrowUser {
         Ok(public_key)
     }
 
-    async fn receive_escrow_provider_pk(
+    async fn receive_escrow_coordinator_pk(
         nostr_client: &NostrClient,
         trade_beginning_ts: Timestamp,
-        provider_npub: &String,
+        coordinator_npub: &String,
     ) -> anyhow::Result<PublicKey> {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
             .since(trade_beginning_ts)
-            .author(nostr_sdk::PublicKey::from_bech32(provider_npub)?);
+            .author(nostr_sdk::PublicKey::from_bech32(coordinator_npub)?);
         nostr_client.client.subscribe(vec![filter_note], None).await;
 
         let mut notifications = nostr_client.client.notifications();
@@ -128,7 +128,7 @@ impl EscrowUser {
                 }
             }
         }
-        Err(anyhow!("No valid escrow provider public key received"))
+        Err(anyhow!("No valid escrow coordinator public key received"))
     }
 
     async fn await_and_validate_trade_token(&self) -> anyhow::Result<cdk::nuts::Token> {
