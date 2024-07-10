@@ -1,0 +1,19 @@
+[package]
+name = "cashu_escrow_client"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nostr-sdk = { version = "0.32.0", features = ["nip04"] }
+cdk = "0.1.1"
+dotenv = "0.15.0"
+anyhow = "1.0.86"
+tokio = "1.38.0"
+rand = "0.8.5"
+serde = "1.0.203"
+serde_json = "1.0.117"
+sha2 = "0.10.8"
+
+cashu_escrow_common = { path = "../common" }

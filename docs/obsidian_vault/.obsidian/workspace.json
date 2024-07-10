@@ -13,11 +13,11 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Untitled.canvas",
+                "file": "protocol-overview.canvas",
                 "viewState": {
-                  "x": 191.86422257253932,
-                  "y": 589.1163654620283,
-                  "zoom": -0.5
+                  "x": -39,
+                  "y": 575,
+                  "zoom": -0.4579420004968108
                 }
               }
             }
@@ -88,7 +88,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Untitled.canvas",
+                "file": "protocol-overview.canvas",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -105,7 +105,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Untitled.canvas",
+                "file": "protocol-overview.canvas",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -128,7 +128,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Untitled.canvas"
+                "file": "protocol-overview.canvas"
               }
             }
           }
@@ -151,7 +151,8 @@
   },
   "active": "0244df5edeba903b",
   "lastOpenFiles": [
-    "Untitled.md",
-    "Untitled.canvas"
+    "Protocol-Overview.png",
+    "protocol-overview.canvas",
+    "Untitled.md"
   ]
 }

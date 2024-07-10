@@ -3,23 +3,23 @@
 This project originated from the [Ecash Hackathon 2024](https://web.archive.org/web/20240527181133/https://www.nobsbitcoin.com/ecash-hackday-v2-to-take-place-in-berlin-on-june-20-21/). 
 
 ## Idea
-An escrow solution for trading projects (e.g. online shops) facilitating their payments over the [Cashu ecash protocol](https://cashu.space/). The trading parties can agree upon an escrow provider which is either hardcoded or can be discovered through a [Nostr](https://nostr.com/) announcement [event](https://github.com/nostr-protocol/nips/blob/master/01.md). How the escrow provider is chosen depends on the software implementing the client library (e.g. reputation based ranking).  
+An escrow solution for trading projects (e.g. online shops) facilitating their payments over the [Cashu ecash protocol](https://cashu.space/). The trading parties can agree upon an escrow coordinator which is either hardcoded or can be discovered through a [Nostr](https://nostr.com/) announcement [event](https://github.com/nostr-protocol/nips/blob/master/01.md). How the escrow coordinator is chosen depends on the software implementing the client library (e.g. reputation based ranking).  
 Everyone can run an escrow coordinator and announce their service publicly trough Nostr.  
 The buying party locks its funds in a [2-of-3 P2PK ecash token](https://github.com/cashubtc/nuts/blob/main/11.md) which can then be unlocked by the buyer and seller (happy path) or the coordinator and one of the trading parties (escrow mediation path).  
 
-This makes it possible to separate away the escrow provider from the trading plattform operator which can result in the following benefits for traders, developers and operators:
+This makes it possible to separate away the escrow coordinator from the trading plattform operator which can result in the following benefits for traders, developers and operators:
 
 * Distributing trust between trading plattform operator and escrow operator
 * Reducing operational burden of running a trading platform
-* Formation of an escrow provider market due to low entry barrier (driving down fees and favouring honest providers)
+* Formation of an escrow coordinator market due to low entry barrier (driving down fees and favouring honest coordinators)
 * Simple integration of escrow features in all kinds of trading plattforms and applications
-* No vendor lock-in to a single large escrow provider necessary
+* No vendor lock-in to a single large escrow coordinator necessary
 * Safer trading conditions in low trust environments (e.g. pseudonymous traders on nostr- or onion markets)
 * Good privacy for traders in happy case (coordinator has few, ephemeral informations about trade and traders)  
 
-## Architecture
+## Protocol Overview
 
-![Screenshot from 2024-06-20 22-26-21](https://github.com/f321x/ecash-escrow-nostr-concept/assets/51097237/8b227061-da61-436d-bedc-0a1a25602b50)
+![Protocol Overview Picture](docs/obsidian_vault/Protocol-Overview.png)
 
 #### Additions and thoughts
 

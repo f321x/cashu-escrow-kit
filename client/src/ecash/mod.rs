@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::escrow_client::EscrowUser;
+use escrow_client::EscrowUser;
 use cdk::secp256k1::rand::Rng;
 use cdk::{
     amount::SplitTarget,
@@ -25,7 +25,7 @@ impl EcashWallet {
         let seed = rand::thread_rng().gen::<[u8; 32]>();
         println!("Trade ecash pubkey: {}", trade_pubkey);
 
-        let wallet = Wallet::new(Arc::new(localstore), &seed, vec![]);
+        let wallet = Wallet::new("", CurrencyUnit::Sat, Arc::new(localstore), &seed);
 
         Ok(Self {
             secret,
@@ -40,19 +40,17 @@ impl EcashWallet {
     ) -> anyhow::Result<SpendingConditions> {
         let buyer_pubkey = PublicKey::from_str(user.contract.buyer_ecash_public_key.as_str())?;
         let seller_pubkey = PublicKey::from_str(user.contract.seller_ecash_public_key.as_str())?;
-        let provider_pubkey = user.escrow_provider_cashu_pk.clone();
-
-        let public_keys = vec![buyer_pubkey, seller_pubkey, provider_pubkey];
+        let coordinator_pubkey = user.escrow_coordinator_cashu_pk.clone();
 
         let spending_conditions = SpendingConditions::new_p2pk(
-            self.secret.public_key(),
-            Conditions::new(
+            seller_pubkey,
+            Some(Conditions::new(
                 Some(user.contract.time_limit),
-                Some(public_keys),
+                Some(vec![buyer_pubkey, coordinator_pubkey]),
                 Some(vec![buyer_pubkey]),
                 Some(2),
                 Some(SigFlag::SigAll),
-            )?,
+            )?)
         );
         Ok(spending_conditions)
     }
@@ -62,8 +60,6 @@ impl EcashWallet {
         let token = self
             .wallet
             .send(
-                &cdk::UncheckedUrl::new(&user.contract.trade_mint_url),
-                CurrencyUnit::Sat,
                 user.contract.trade_amount_sat.into(),
                 Some(user.contract.trade_description.clone()),
                 Some(spending_conditions),
