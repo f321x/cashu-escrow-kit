@@ -47,6 +47,7 @@ async fn main() -> anyhow::Result<()> {
             String::from("seller")
         }
         _ => {
+            panic!("Wrong trading mode selected. Select either (1) buyer or (2) seller");
             nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?; //irrelevant
             String::from("none")
         }
