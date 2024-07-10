@@ -1,5 +1,5 @@
 [package]
-name = "birdseed_escrow"
+name = "cashu_escrow_coordinator"
 version = "0.1.0"
 edition = "2021"
 
@@ -16,7 +16,7 @@ serde = "1.0.203"
 serde_json = "1.0.117"
 sha2 = "0.10.8"
 
-birdseed_common = { path = "../common" }
+cashu_escrow_common = { path = "../common" }
 
 [profile.release]
 lto = true

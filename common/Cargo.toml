@@ -1,5 +1,5 @@
 [package]
-name = "birdseed_common"
+name = "cashu_escrow_common"
 version = "0.1.0"
 edition = "2021"
 

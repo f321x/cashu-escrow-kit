@@ -1,10 +1,10 @@
-mod escrow_provider;
+mod escrow_coordinator;
 
 use std::env;
 
 use dotenv::dotenv;
-use escrow_provider::EscrowProvider;
-use birdseed_common::nostr::NostrClient;
+use escrow_coordinator::EscrowProvider;
+use cashu_escrow_common::nostr::NostrClient;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
