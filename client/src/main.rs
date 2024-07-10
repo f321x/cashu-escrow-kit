@@ -4,7 +4,7 @@ mod escrow_client;
 use std::env;
 
 use anyhow::anyhow;
-use birdseed_common as common;
+use cashu_escrow_common as common;
 use common::cli::get_user_input;
 use dotenv::dotenv;
 use ecash::EcashWallet;
@@ -48,8 +48,6 @@ async fn main() -> anyhow::Result<()> {
         }
         _ => {
             panic!("Wrong trading mode selected. Select either (1) buyer or (2) seller");
-            nostr_client = NostrClient::new(&env::var("ESCROW_NSEC")?).await?; //irrelevant
-            String::from("none")
         }
     };
 
