@@ -40,15 +40,13 @@ impl EcashWallet {
     ) -> anyhow::Result<SpendingConditions> {
         let buyer_pubkey = PublicKey::from_str(user.contract.buyer_ecash_public_key.as_str())?;
         let seller_pubkey = PublicKey::from_str(user.contract.seller_ecash_public_key.as_str())?;
-        let provider_pubkey = user.escrow_provider_cashu_pk.clone();
-
-        let public_keys = vec![buyer_pubkey, seller_pubkey, provider_pubkey];
+        let coordinator_pubkey = user.escrow_coordinator_cashu_pk.clone();
 
         let spending_conditions = SpendingConditions::new_p2pk(
-            self.secret.public_key(),
+            seller_pubkey,
             Some(Conditions::new(
                 Some(user.contract.time_limit),
-                Some(public_keys),
+                Some(vec![buyer_pubkey, coordinator_pubkey]),
                 Some(vec![buyer_pubkey]),
                 Some(2),
                 Some(SigFlag::SigAll),
