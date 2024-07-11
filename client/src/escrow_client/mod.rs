@@ -1,4 +1,5 @@
 use super::*;
+use cashu_escrow_common::nostr::PubkeyMessage;
 use cdk::nuts::PublicKey;
 
 pub enum Trader {
@@ -96,8 +97,9 @@ impl EscrowUser {
         Ok(escrow_coordinator_pk)
     }
 
-    async fn parse_escrow_pk(pk: &String) -> anyhow::Result<PublicKey> {
-        let public_key = PublicKey::from_hex(pk)?;
+    async fn parse_escrow_pk(pk_message_json: &String) -> anyhow::Result<PublicKey> {
+        let pkm: PubkeyMessage = serde_json::from_str(pk_message_json)?;
+        let public_key = PublicKey::from_hex(pkm.escrow_coordinator_pubkey)?;
         Ok(public_key)
     }
 
@@ -121,7 +123,7 @@ impl EscrowUser {
                     .await
                 {
                     dbg!("Received event: {:?}", &decrypted);
-                    if let Ok(potential_mint_pk) = Self::parse_escrow_pk(&event.content).await {
+                    if let Ok(potential_mint_pk) = Self::parse_escrow_pk(&decrypted).await {
                         nostr_client.client.unsubscribe_all().await;
                         return Ok(potential_mint_pk);
                     }

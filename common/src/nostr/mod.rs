@@ -1,17 +1,17 @@
 use crate::TradeContract;
 use nostr_sdk as ndk;
 use ndk::prelude::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub struct NostrClient {
     keypair: Keys,
     pub client: Client,
 }
 
-#[derive(Serialize)]
-struct PubkeyMessage {
-    escrow_coordinator_pubkey: String,
-    trade_id_hex: String,
+#[derive(Serialize, Deserialize)]
+pub struct PubkeyMessage {
+    pub escrow_coordinator_pubkey: String,
+    pub trade_id_hex: String,
 }
 
 impl NostrClient {
