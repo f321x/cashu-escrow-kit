@@ -1,9 +1,9 @@
 use super::*;
 use cashu_escrow_common::TradeContract;
 use cdk::nuts::SecretKey;
-use nostr_sdk as ndk;
-use ndk::prelude::*;
 use hashes::hex::DisplayHex;
+use ndk::prelude::*;
+use nostr_sdk as ndk;
 use nostr_sdk::{Filter, Kind, RelayPoolNotification};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
@@ -82,7 +82,10 @@ impl EscrowCoordinator {
         contract_hash: &[u8; 32],
         trade: &TradeContract,
     ) -> anyhow::Result<()> {
-        dbg!("Beginning trade: {}", contract_hash.to_hex_string(hashes::hex::Case::Lower));
+        dbg!(
+            "Beginning trade: {}",
+            contract_hash.to_hex_string(hashes::hex::Case::Lower)
+        );
         let contract_secret = SecretKey::generate();
         self.active_contracts.insert(
             contract_hash.clone(),
