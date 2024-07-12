@@ -6,11 +6,11 @@ use std::env;
 use anyhow::anyhow;
 use cashu_escrow_common as common;
 use common::cli::get_user_input;
+use common::nostr::NostrClient;
+use common::TradeContract;
 use dotenv::dotenv;
 use ecash::EcashWallet;
-use common::TradeContract;
 use escrow_client::{EscrowUser, Trader};
-use common::nostr::NostrClient;
 use nostr_sdk::prelude::*;
 
 #[tokio::main]

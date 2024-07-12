@@ -1,6 +1,6 @@
 use crate::TradeContract;
-use nostr_sdk as ndk;
 use ndk::prelude::*;
+use nostr_sdk as ndk;
 use serde::Serialize;
 
 pub struct NostrClient {
