@@ -2,9 +2,9 @@ mod escrow_coordinator;
 
 use std::env;
 
+use cashu_escrow_common::nostr::NostrClient;
 use dotenv::dotenv;
 use escrow_coordinator::EscrowCoordinator;
-use cashu_escrow_common::nostr::NostrClient;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

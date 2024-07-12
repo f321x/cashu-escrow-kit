@@ -1,6 +1,5 @@
 use super::*;
 
-use escrow_client::EscrowUser;
 use cdk::secp256k1::rand::Rng;
 use cdk::{
     amount::SplitTarget,
@@ -8,6 +7,7 @@ use cdk::{
     nuts::{Conditions, CurrencyUnit, PublicKey, SecretKey, SigFlag, SpendingConditions, Token},
     wallet::Wallet,
 };
+use escrow_client::EscrowUser;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -50,7 +50,7 @@ impl EcashWallet {
                 Some(vec![buyer_pubkey]),
                 Some(2),
                 Some(SigFlag::SigAll),
-            )?)
+            )?),
         );
         Ok(spending_conditions)
     }
