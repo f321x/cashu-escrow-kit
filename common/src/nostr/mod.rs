@@ -12,6 +12,7 @@ pub struct NostrClient {
 pub struct PubkeyMessage {
     pub escrow_coordinator_pubkey: String,
     pub trade_id_hex: String,
+    pub escrow_start_ts: Timestamp,
 }
 
 impl NostrClient {
@@ -56,6 +57,7 @@ impl NostrClient {
         let message = serde_json::to_string(&PubkeyMessage {
             escrow_coordinator_pubkey: trade_pk.clone(),
             trade_id_hex: hex::encode(id),
+            escrow_start_ts: Timestamp::now(),
         })?;
         self.client
             .send_direct_msg(PublicKey::from_bech32(receivers.0)?, &message, None)
