@@ -21,7 +21,8 @@ async fn main() -> anyhow::Result<()> {
     let mut buyer_npub: String = env::var("BUYER_NPUB")?;
     let mut seller_npub: String = env::var("SELLER_NPUB")?;
     let coordinator_npub: String = env::var("ESCROW_NPUB")?;
-    let ecash_wallet = EcashWallet::new().await?;
+    let mint_url = "https://mint.minibits.cash/Bitcoin";
+    let ecash_wallet = EcashWallet::new(mint_url).await?;
     let mut seller_ecash_pubkey: String = String::new();
     let mut buyer_ecash_pubkey: String = String::new();
     let nostr_client: NostrClient;
@@ -52,10 +53,9 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let contract = TradeContract {
-        trade_beginning_ts: 1718975980,
         trade_description: "Purchase of one Watermelon for 5000 satoshi. 3 days delivery to ..."
             .to_string(),
-        trade_mint_url: "https://mint.minibits.cash/Bitcoin".to_string(),
+        trade_mint_url: mint_url.to_string(),
         trade_amount_sat: 5000,
         npub_seller: seller_npub,
         npub_buyer: buyer_npub,
