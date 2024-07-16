@@ -1,18 +1,24 @@
+pub mod nostr;
+
 use super::*;
 use cdk::nuts::PublicKey;
+use nostr_sdk::PublicKey as NostrPubkey;
 
 pub enum Trader {
-    Buyer(EscrowUser),
-    Seller(EscrowUser),
+    Buyer(ClientEscrowMetadata),
+    Seller(ClientEscrowMetadata),
 }
 
-pub struct EscrowUser {
-    pub trade_beginning_ts: Timestamp,
-    pub escrow_coordinator_npub: String,
-    pub escrow_coordinator_cashu_pk: PublicKey,
-    pub contract: TradeContract,
-    pub wallet: EcashWallet,
-    pub nostr_client: NostrClient,
+pub struct ClientEscrowMetadata {
+    pub escrow_coordinator_nostr_public_key: NostrPubkey,
+}
+
+impl ClientEscrowMetadata {
+    pub fn from_client_cli_input(cli_input: &ClientCliInput) -> anyhow::Result<Self> {
+        Ok(Self {
+            escrow_coordinator_nostr_public_key: cli_input.coordinator_nostr_pubkey,
+        })
+    }
 }
 
 impl Trader {

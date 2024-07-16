@@ -7,7 +7,6 @@ use cdk::{
     nuts::{Conditions, CurrencyUnit, PublicKey, SecretKey, SigFlag, SpendingConditions, Token},
     wallet::Wallet,
 };
-use escrow_client::EscrowUser;
 use std::str::FromStr;
 use std::sync::Arc;
 
@@ -23,7 +22,7 @@ impl EcashWallet {
         let secret = SecretKey::generate();
         let trade_pubkey: String = secret.public_key().to_string();
         let seed = rand::thread_rng().gen::<[u8; 32]>();
-        println!("Trade ecash pubkey: {}", trade_pubkey);
+        info!("Trade ecash pubkey: {}", trade_pubkey);
 
         let wallet = Wallet::new("", CurrencyUnit::Sat, Arc::new(localstore), &seed);
 

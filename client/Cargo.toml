@@ -17,3 +17,5 @@ serde_json = "1.0.117"
 sha2 = "0.10.8"
 
 cashu_escrow_common = { path = "../common" }
+log = "0.4.22"
+env_logger = "0.11.3"
