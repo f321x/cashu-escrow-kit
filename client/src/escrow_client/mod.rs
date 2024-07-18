@@ -31,7 +31,7 @@ impl Trader {
 
     async fn buyer_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
         let token = config.wallet.create_escrow_token(config).await?;
-        dbg!("Snding token to the seller: {}", token.as_str());
+        dbg!("Sending token to the seller: {}", token.as_str());
 
         config
             .nostr_client
