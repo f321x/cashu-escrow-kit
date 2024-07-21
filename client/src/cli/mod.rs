@@ -6,11 +6,13 @@ use nostr_sdk::Keys as NostrKeys;
 use nostr_sdk::PublicKey as NostrPubkey;
 use std::str::FromStr;
 
+#[derive(Debug, Clone)]
 pub enum TradeMode {
     Buyer,
     Seller,
 }
 
+#[derive(Debug)]
 struct RawCliInput {
     buyer_npub: String,
     seller_npub: String,
@@ -19,8 +21,10 @@ struct RawCliInput {
     coordinator_npub: String,
     nostr_nsec: String,
     mode: TradeMode,
+    mint_url: String,
 }
 
+#[derive(Debug)]
 pub struct ClientCliInput {
     pub mode: TradeMode,
     pub trader_nostr_keys: NostrKeys,
@@ -28,6 +32,7 @@ pub struct ClientCliInput {
     pub ecash_pubkey_seller: EcashPubkey,
     pub coordinator_nostr_pubkey: NostrPubkey,
     pub trade_partner_nostr_pubkey: NostrPubkey,
+    pub mint_url: String,
 }
 
 impl RawCliInput {
@@ -36,6 +41,7 @@ impl RawCliInput {
         let buyer_npub: String = env::var("BUYER_NPUB")?;
         let seller_npub: String = env::var("SELLER_NPUB")?;
         let coordinator_npub: String = env::var("ESCROW_NPUB")?;
+        let mint_url = env::var("MINT_URL")?;
 
         let mut seller_ecash_pubkey: String = String::new();
         let mut buyer_ecash_pubkey: String = String::new();
@@ -67,6 +73,7 @@ impl RawCliInput {
             coordinator_npub,
             nostr_nsec,
             mode,
+            mint_url,
         })
     }
 }
@@ -74,6 +81,7 @@ impl RawCliInput {
 impl ClientCliInput {
     pub async fn parse() -> anyhow::Result<Self> {
         let raw_input = RawCliInput::parse().await?;
+        debug!("Raw parsed CLI input: {:?}", raw_input);
 
         let ecash_pubkey_buyer = EcashPubkey::from_str(&raw_input.buyer_ecash_pubkey)?;
         let ecash_pubkey_seller = EcashPubkey::from_str(&raw_input.seller_ecash_pubkey)?;
@@ -92,6 +100,7 @@ impl ClientCliInput {
             ecash_pubkey_seller,
             coordinator_nostr_pubkey,
             trade_partner_nostr_pubkey,
+            mint_url: raw_input.mint_url,
         })
     }
 }
