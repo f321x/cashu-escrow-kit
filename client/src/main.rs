@@ -30,8 +30,8 @@ pub struct EscrowClient {
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::builder()
-        .filter_module("client", log::LevelFilter::Debug)
-        .filter_level(log::LevelFilter::Info)
+        .filter_module("client", log::LevelFilter::Debug) // logging level of the client
+        .filter_level(log::LevelFilter::Info) // logging level of all other crates
         .init();
 
     let cli_input = ClientCliInput::parse().await?;
