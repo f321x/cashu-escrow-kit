@@ -11,6 +11,7 @@ in
         zlib 
         openssl 
         cargo 
+        clippy
         rustc 
         rustfmt
         gcc

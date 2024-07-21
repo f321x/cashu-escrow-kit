@@ -48,7 +48,6 @@ impl EscrowCoordinator {
                 if let Some(decrypted) = self
                     .nostr_client
                     .decrypt_msg(&event.content, &event.author())
-                    .await
                 {
                     dbg!("Received event: {:?}", &decrypted);
                     if let Ok((contract_hash, contract)) = self.parse(decrypted.as_str()).await {
