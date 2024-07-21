@@ -44,13 +44,12 @@ impl EscrowClient {
         match self.escrow_metadata.mode {
             TradeMode::Buyer => {
                 self.buyer_pipeline().await?;
-                Ok(())
             }
             TradeMode::Seller => {
                 self.seller_pipeline().await?;
-                Ok(())
             }
-        }
+        };
+        Ok(())
     }
 
     // the common trade flow is similar for both buyer and seller
@@ -62,7 +61,7 @@ impl EscrowClient {
             .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
             .await?;
 
-        let escrow_coordinator_pk_ts = self
+        let escrow_coordinator_pk_ts: (EcashPubkey, Timestamp) = self
             .nostr_instance
             .get_escrow_coordinator_pk(coordinator_pk)
             .await?;
