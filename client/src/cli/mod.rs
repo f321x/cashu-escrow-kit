@@ -6,7 +6,7 @@ use nostr_sdk::Keys as NostrKeys;
 use nostr_sdk::PublicKey as NostrPubkey;
 use std::str::FromStr;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum TradeMode {
     Buyer,
     Seller,

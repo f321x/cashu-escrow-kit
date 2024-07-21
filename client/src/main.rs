@@ -23,7 +23,6 @@ pub struct EscrowClient {
     pub ecash_wallet: ClientEcashWallet,
     pub escrow_metadata: ClientEscrowMetadata, // data relevant for the application but not for the outcome of the trade contract
     pub escrow_contract: TradeContract,
-    pub mode: TradeMode,
 }
 
 #[tokio::main]

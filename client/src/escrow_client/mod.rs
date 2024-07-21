@@ -8,6 +8,7 @@ pub struct ClientEscrowMetadata {
     pub escrow_coordinator_nostr_public_key: NostrPubkey,
     pub escrow_coordinator_ecash_public_key: Option<EcashPubkey>,
     pub escrow_start_timestamp: Option<Timestamp>,
+    pub mode: TradeMode,
 }
 
 impl ClientEscrowMetadata {
@@ -16,6 +17,7 @@ impl ClientEscrowMetadata {
             escrow_coordinator_nostr_public_key: cli_input.coordinator_nostr_pubkey,
             escrow_coordinator_ecash_public_key: None,
             escrow_start_timestamp: None,
+            mode: cli_input.mode,
         })
     }
 }
@@ -32,7 +34,6 @@ impl EscrowClient {
             ecash_wallet,
             escrow_metadata,
             escrow_contract,
-            mode: cli_input.mode.clone(),
         })
     }
 
@@ -40,7 +41,7 @@ impl EscrowClient {
         Self::common_trade_flow(self).await?;
         debug!("Common trade flow completed");
 
-        match self.mode {
+        match self.escrow_metadata.mode {
             TradeMode::Buyer => {
                 self.buyer_pipeline().await?;
                 Ok(())
