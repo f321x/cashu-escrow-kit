@@ -39,7 +39,7 @@ impl NostrClient {
         Ok(self.keypair.public_key().to_bech32()?)
     }
 
-    pub async fn decrypt_msg(&self, msg: &String, sender_pk: &PublicKey) -> Option<String> {
+    pub fn decrypt_msg(&self, msg: &str, sender_pk: &PublicKey) -> Option<String> {
         let decrypted =
             ndk::nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
         if let Ok(decrypted) = decrypted {
@@ -48,14 +48,15 @@ impl NostrClient {
         None
     }
 
+    // coordinator specific function?
     pub async fn send_escrow_pubkeys(
         &self,
-        receivers: (&String, &String),
+        receivers: (&str, &str),
         id: &[u8; 32],
-        trade_pk: &String,
+        trade_pk: &str,
     ) -> anyhow::Result<()> {
         let message = serde_json::to_string(&PubkeyMessage {
-            escrow_coordinator_pubkey: trade_pk.clone(),
+            escrow_coordinator_pubkey: trade_pk.to_string(),
             trade_id_hex: hex::encode(id),
             escrow_start_ts: Timestamp::now(),
         })?;
@@ -68,10 +69,11 @@ impl NostrClient {
         Ok(())
     }
 
+    // client specific function?
     pub async fn send_escrow_contract(
         &self,
         contract: &TradeContract,
-        coordinator_pk_bech32: &String,
+        coordinator_pk_bech32: &str,
     ) -> anyhow::Result<()> {
         let message = serde_json::to_string(contract)?;
         dbg!("sending contract to coordinator...");
@@ -85,10 +87,11 @@ impl NostrClient {
         Ok(())
     }
 
-    pub async fn submit_trade_token_to_seller(
+    // client specific function?
+    pub async fn send_trade_token_to_seller(
         &self,
-        seller_npub: &String,
-        token: &String,
+        seller_npub: &str,
+        token: &str,
     ) -> anyhow::Result<()> {
         self.client
             .send_direct_msg(PublicKey::from_bech32(seller_npub)?, token, None)
