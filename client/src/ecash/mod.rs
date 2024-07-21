@@ -1,3 +1,5 @@
+mod tests_ecash;
+
 use super::*;
 
 use cdk::secp256k1::rand::Rng;
