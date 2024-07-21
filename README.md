@@ -32,6 +32,11 @@ To reduce uneccesary burden on relays we can aim to use ephemeral event types fo
 ##### Client
 The client could be distributed as wasm library and rust crate. There could also be a compilation flag that decides if the client gets built with nostr communication logic or only with nostr event creation logic. First would be useful for inclusion in traditional trading platforms and second would be useful for nostr based trading platforms already including relay/communication logic.
 
+## Running the Demo
+Berofe running the trader clients and the coordinator start a test mint using a fake funds source.
+
+`docker run -p 3338:3338 --name nutshell -e MINT_BACKEND_BOLT11_SAT=FakeWallet -e MINT_LISTEN_HOST=0.0.0.0 -e MINT_LISTEN_PORT=3338 -e MINT_PRIVATE_KEY=TEST_PRIVATE_KEY cashubtc/nutshell:0.15.3 poetry run mint`
+
 ## Acknowledgments
 Special thanks to the following projects, without them this project wouldn't be possible:
 
