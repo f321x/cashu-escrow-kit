@@ -16,6 +16,7 @@ pub enum TradeMode {
 struct RawCliInput {
     buyer_npub: String,
     seller_npub: String,
+    pub ecash_wallet: ClientEcashWallet,
     seller_ecash_pubkey: String,
     buyer_ecash_pubkey: String,
     coordinator_npub: String,
@@ -28,6 +29,7 @@ struct RawCliInput {
 pub struct ClientCliInput {
     pub mode: TradeMode,
     pub trader_nostr_keys: NostrKeys,
+    pub ecash_wallet: ClientEcashWallet,
     pub ecash_pubkey_buyer: EcashPubkey,
     pub ecash_pubkey_seller: EcashPubkey,
     pub coordinator_nostr_pubkey: NostrPubkey,
@@ -43,8 +45,9 @@ impl RawCliInput {
         let coordinator_npub: String = env::var("ESCROW_NPUB")?;
         let mint_url = env::var("MINT_URL")?;
 
-        let mut seller_ecash_pubkey: String = String::new();
-        let mut buyer_ecash_pubkey: String = String::new();
+        let ecash_wallet = ClientEcashWallet::new(&mint_url).await?;
+        let seller_ecash_pubkey: String;
+        let buyer_ecash_pubkey: String;
         let nostr_nsec: String;
 
         let mode = match get_user_input("Select mode: (1) buyer, (2) seller: ")
@@ -53,11 +56,13 @@ impl RawCliInput {
         {
             "1" => {
                 nostr_nsec = env::var("BUYER_NSEC")?;
+                buyer_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
                 seller_ecash_pubkey = get_user_input("Enter seller's ecash pubkey: ").await?;
                 TradeMode::Buyer
             }
             "2" => {
                 nostr_nsec = env::var("SELLER_NSEC")?;
+                seller_ecash_pubkey = ecash_wallet.trade_pubkey.clone();
                 buyer_ecash_pubkey = get_user_input("Enter buyer's ecash pubkey: ").await?;
                 TradeMode::Seller
             }
@@ -68,6 +73,7 @@ impl RawCliInput {
         Ok(Self {
             buyer_npub,
             seller_npub,
+            ecash_wallet,
             seller_ecash_pubkey,
             buyer_ecash_pubkey,
             coordinator_npub,
@@ -96,6 +102,7 @@ impl ClientCliInput {
         Ok(Self {
             mode: raw_input.mode,
             trader_nostr_keys,
+            ecash_wallet: raw_input.ecash_wallet,
             ecash_pubkey_buyer,
             ecash_pubkey_seller,
             coordinator_nostr_pubkey,

@@ -23,11 +23,11 @@ impl ClientEscrowMetadata {
 }
 
 impl EscrowClient {
-    pub async fn from_cli_input(cli_input: &ClientCliInput) -> anyhow::Result<Self> {
-        let escrow_contract = TradeContract::from_client_cli_input(cli_input)?;
-        let escrow_metadata = ClientEscrowMetadata::from_client_cli_input(cli_input)?;
-        let nostr_instance = ClientNostrInstance::from_client_cli_input(cli_input).await?;
-        let ecash_wallet = ClientEcashWallet::new(&cli_input.mint_url).await?;
+    pub async fn from_cli_input(cli_input: ClientCliInput) -> anyhow::Result<Self> {
+        let escrow_contract = TradeContract::from_client_cli_input(&cli_input)?;
+        let escrow_metadata = ClientEscrowMetadata::from_client_cli_input(&cli_input)?;
+        let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
+        let ecash_wallet = cli_input.ecash_wallet;
 
         Ok(Self {
             nostr_instance,

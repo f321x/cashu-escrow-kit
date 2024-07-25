@@ -12,8 +12,8 @@ use cli::{trade_contract::FromClientCliInput, ClientCliInput, TradeMode};
 use common::{cli::get_user_input, nostr::NostrClient, TradeContract};
 use dotenv::dotenv;
 use ecash::ClientEcashWallet;
-use escrow_client::{general_utils::*, *};
-use log::{debug, error, info};
+use escrow_client::*;
+use log::{debug, info};
 use nostr::ClientNostrInstance;
 use nostr_sdk::prelude::*;
 use nostr_sdk::PublicKey as NostrPubkey;
@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let cli_input = ClientCliInput::parse().await?;
-    let mut escrow_client = EscrowClient::from_cli_input(&cli_input).await?;
+    let mut escrow_client = EscrowClient::from_cli_input(cli_input).await?;
 
     escrow_client.init_trade().await?;
 

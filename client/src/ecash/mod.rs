@@ -11,6 +11,7 @@ use cdk::{
 use std::str::FromStr;
 use std::sync::Arc;
 
+#[derive(Debug)]
 pub struct ClientEcashWallet {
     secret: SecretKey,
     pub wallet: Wallet,
