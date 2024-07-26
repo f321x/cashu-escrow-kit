@@ -12,11 +12,11 @@ impl FromClientCliInput for TradeContract {
 
         match cli_input.mode {
             TradeMode::Buyer => {
-                npub_seller = cli_input.trade_partner_nostr_pubkey.to_string();
+                npub_seller = cli_input.trade_partner_nostr_pubkey.to_bech32()?;
                 npub_buyer = cli_input.trader_nostr_keys.public_key().to_bech32()?;
             }
             TradeMode::Seller => {
-                npub_buyer = cli_input.trade_partner_nostr_pubkey.to_string();
+                npub_buyer = cli_input.trade_partner_nostr_pubkey.to_bech32()?;
                 npub_seller = cli_input.trader_nostr_keys.public_key().to_bech32()?;
             }
         }

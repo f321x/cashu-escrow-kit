@@ -40,12 +40,14 @@ impl NostrClient {
     }
 
     pub fn decrypt_msg(&self, msg: &str, sender_pk: &PublicKey) -> Option<String> {
-        let decrypted =
-            ndk::nostr::nips::nip04::decrypt(self.keypair.secret_key().unwrap(), sender_pk, msg);
-        if let Ok(decrypted) = decrypted {
-            return Some(decrypted);
-        }
-        None
+        let decrypted: std::result::Result<String, anyhow::Error> = self
+            .keypair
+            .secret_key()
+            .map_err(|e| e.into())
+            .and_then(|sk| {
+                ndk::nostr::nips::nip04::decrypt(sk, sender_pk, msg).map_err(|e| e.into())
+            });
+        decrypted.ok()
     }
 
     // coordinator specific function?
