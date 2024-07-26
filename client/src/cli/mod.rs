@@ -95,8 +95,8 @@ impl ClientCliInput {
         let trader_nostr_keys = NostrKeys::from_str(&raw_input.nostr_nsec)?;
         let coordinator_nostr_pubkey = NostrPubkey::from_str(&raw_input.coordinator_npub)?;
         let trade_partner_nostr_pubkey = match raw_input.mode {
-            TradeMode::Buyer => NostrPubkey::from_str(&raw_input.seller_npub)?,
-            TradeMode::Seller => NostrPubkey::from_str(&raw_input.buyer_npub)?,
+            TradeMode::Buyer => NostrPubkey::from_bech32(&raw_input.seller_npub)?,
+            TradeMode::Seller => NostrPubkey::from_bech32(&raw_input.buyer_npub)?,
         };
 
         Ok(Self {
