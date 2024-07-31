@@ -1,5 +1,5 @@
 use crate::TradeContract;
-use ndk::prelude::*;
+use ndk::{nostr::nips::nip04, prelude::*};
 use nostr_sdk as ndk;
 use serde::{Deserialize, Serialize};
 
@@ -40,14 +40,11 @@ impl NostrClient {
     }
 
     pub fn decrypt_msg(&self, msg: &str, sender_pk: &PublicKey) -> Option<String> {
-        let decrypted: std::result::Result<String, anyhow::Error> = self
+        let secret_key = self
             .keypair
             .secret_key()
-            .map_err(|e| e.into())
-            .and_then(|sk| {
-                ndk::nostr::nips::nip04::decrypt(sk, sender_pk, msg).map_err(|e| e.into())
-            });
-        decrypted.ok()
+            .expect("The key pair must be set if we have a valid instance.");
+        nip04::decrypt(secret_key, sender_pk, msg).ok()
     }
 
     // coordinator specific function?
