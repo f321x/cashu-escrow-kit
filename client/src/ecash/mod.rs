@@ -38,7 +38,7 @@ impl ClientEcashWallet {
     fn assemble_escrow_conditions(
         &self,
         contract: &TradeContract,
-        escrow_metadata: &ClientEscrowMetadata,
+        escrow_metadata: &EscrowClientMetadata,
     ) -> anyhow::Result<SpendingConditions> {
         let seller_pubkey = EscrowPubkey::from_str(&contract.seller_ecash_public_key)?;
         let buyer_pubkey = EscrowPubkey::from_str(&contract.buyer_ecash_public_key)?;
@@ -67,7 +67,7 @@ impl ClientEcashWallet {
     pub async fn create_escrow_token(
         &self,
         contract: &TradeContract,
-        escrow_metadata: &ClientEscrowMetadata,
+        escrow_metadata: &EscrowClientMetadata,
     ) -> anyhow::Result<String> {
         let spending_conditions = self.assemble_escrow_conditions(contract, escrow_metadata)?;
         let token = self
@@ -86,7 +86,7 @@ impl ClientEcashWallet {
         &self,
         escrow_token: &str,
         contract: &TradeContract,
-        escrow_metadata: &ClientEscrowMetadata,
+        escrow_metadata: &EscrowClientMetadata,
     ) -> anyhow::Result<Token> {
         let spending_conditions = self.assemble_escrow_conditions(contract, escrow_metadata)?;
         let token = Token::from_str(escrow_token)?;
