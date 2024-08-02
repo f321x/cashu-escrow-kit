@@ -18,13 +18,6 @@ use nostr::ClientNostrInstance;
 use nostr_sdk::prelude::*;
 use nostr_sdk::PublicKey as NostrPubkey;
 
-pub struct EscrowClient {
-    pub nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
-    pub ecash_wallet: ClientEcashWallet,
-    pub escrow_metadata: ClientEscrowMetadata, // data relevant for the application but not for the outcome of the trade contract
-    pub escrow_contract: TradeContract,
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();

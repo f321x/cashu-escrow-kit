@@ -92,7 +92,7 @@ impl ClientNostrInstance {
         &self,
         wallet: &ClientEcashWallet,
         contract: &TradeContract,
-        metadata: &ClientEscrowMetadata,
+        metadata: &EscrowClientMetadata,
     ) -> anyhow::Result<cdk::nuts::Token> {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)

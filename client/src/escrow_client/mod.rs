@@ -4,14 +4,14 @@ mod seller_utils;
 
 use super::*;
 
-pub struct ClientEscrowMetadata {
+pub struct EscrowClientMetadata {
     pub escrow_coordinator_nostr_public_key: NostrPubkey,
     pub escrow_coordinator_ecash_public_key: Option<EcashPubkey>,
     pub escrow_start_timestamp: Option<Timestamp>,
     pub mode: TradeMode,
 }
 
-impl ClientEscrowMetadata {
+impl EscrowClientMetadata {
     pub fn from_client_cli_input(cli_input: &ClientCliInput) -> anyhow::Result<Self> {
         Ok(Self {
             escrow_coordinator_nostr_public_key: cli_input.coordinator_nostr_pubkey,
@@ -22,10 +22,17 @@ impl ClientEscrowMetadata {
     }
 }
 
+pub struct EscrowClient {
+    pub nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
+    pub ecash_wallet: ClientEcashWallet,
+    pub escrow_metadata: EscrowClientMetadata, // data relevant for the application but not for the outcome of the trade contract
+    pub escrow_contract: TradeContract,
+}
+
 impl EscrowClient {
     pub async fn from_cli_input(cli_input: ClientCliInput) -> anyhow::Result<Self> {
         let escrow_contract = TradeContract::from_client_cli_input(&cli_input)?;
-        let escrow_metadata = ClientEscrowMetadata::from_client_cli_input(&cli_input)?;
+        let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
         let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
         let ecash_wallet = cli_input.ecash_wallet;
 
@@ -38,7 +45,7 @@ impl EscrowClient {
     }
 
     pub async fn init_trade(&mut self) -> anyhow::Result<()> {
-        Self::common_trade_flow(self).await?;
+        self.common_trade_flow().await?;
         debug!("Common trade flow completed");
 
         match self.escrow_metadata.mode {
