@@ -6,6 +6,7 @@ mod nostr;
 use std::env;
 
 use anyhow::anyhow;
+use async_utility::futures_util::future::ok;
 use cashu_escrow_common as common;
 use cdk::nuts::PublicKey as EcashPubkey;
 use cli::{trade_contract::FromClientCliInput, ClientCliInput, TradeMode};
@@ -29,7 +30,8 @@ async fn main() -> anyhow::Result<()> {
     let cli_input = ClientCliInput::parse().await?;
     let mut escrow_client = EscrowClient::from_cli_input(cli_input).await?;
 
-    escrow_client.init_trade().await?;
+    escrow_client.common_trade_flow().await?;
+    debug!("Common trade flow completed");
 
-    Ok(())
+    escrow_client.rest_trade_flow().await
 }
