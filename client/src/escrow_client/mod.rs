@@ -44,23 +44,8 @@ impl EscrowClient {
         })
     }
 
-    pub async fn init_trade(&mut self) -> anyhow::Result<()> {
-        self.common_trade_flow().await?;
-        debug!("Common trade flow completed");
-
-        match self.escrow_metadata.mode {
-            TradeMode::Buyer => {
-                self.buyer_pipeline().await?;
-            }
-            TradeMode::Seller => {
-                self.seller_pipeline().await?;
-            }
-        };
-        Ok(())
-    }
-
     // the common trade flow is similar for both buyer and seller
-    async fn common_trade_flow(&mut self) -> anyhow::Result<()> {
+    pub async fn common_trade_flow(&mut self) -> anyhow::Result<()> {
         let coordinator_pk = &self.escrow_metadata.escrow_coordinator_nostr_public_key;
 
         // submits the trade contract to the coordinator to initiate the escrow service
@@ -78,7 +63,14 @@ impl EscrowClient {
         Ok(())
     }
 
-    async fn buyer_pipeline(&self) -> anyhow::Result<()> {
+    pub async fn rest_trade_flow(&self) -> std::result::Result<(), anyhow::Error> {
+        match self.escrow_metadata.mode {
+            TradeMode::Buyer => self.buyer_trade_flow().await,
+            TradeMode::Seller => self.seller_trade_flow().await,
+        }
+    }
+
+    async fn buyer_trade_flow(&self) -> anyhow::Result<()> {
         let escrow_contract = &self.escrow_contract;
         let client_metadata = &self.escrow_metadata;
 
@@ -97,7 +89,7 @@ impl EscrowClient {
         Ok(())
     }
 
-    async fn seller_pipeline(&self) -> anyhow::Result<()> {
+    async fn seller_trade_flow(&self) -> anyhow::Result<()> {
         let escrow_contract = &self.escrow_contract;
         let client_metadata = &self.escrow_metadata;
         let wallet = &self.ecash_wallet;
