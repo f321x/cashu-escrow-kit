@@ -2,6 +2,8 @@ mod buyer_utils;
 pub mod general_utils;
 mod seller_utils;
 
+use cli::trade_contract::FromClientCliInput;
+
 use super::*;
 
 pub struct EscrowClientMetadata {
@@ -30,11 +32,15 @@ pub struct EscrowClient {
 }
 
 impl EscrowClient {
-    pub async fn from_cli_input(cli_input: ClientCliInput) -> anyhow::Result<Self> {
-        let escrow_contract = TradeContract::from_client_cli_input(&cli_input)?;
+    pub async fn from_cli_input(
+        cli_input: ClientCliInput,
+        ecash_wallet: ClientEcashWallet,
+    ) -> anyhow::Result<Self> {
+        let escrow_contract =
+            TradeContract::from_client_cli_input(&cli_input, ecash_wallet.trade_pubkey.clone())?;
         let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
         let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
-        let ecash_wallet = cli_input.ecash_wallet;
+        let ecash_wallet = ecash_wallet;
 
         Ok(Self {
             nostr_instance,
