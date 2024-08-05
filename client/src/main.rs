@@ -6,10 +6,9 @@ mod nostr;
 use std::env;
 
 use anyhow::anyhow;
-use async_utility::futures_util::future::ok;
 use cashu_escrow_common as common;
 use cdk::nuts::PublicKey as EcashPubkey;
-use cli::{trade_contract::FromClientCliInput, ClientCliInput, TradeMode};
+use cli::{ClientCliInput, TradeMode};
 use common::{cli::get_user_input, nostr::NostrClient, TradeContract};
 use dotenv::dotenv;
 use ecash::ClientEcashWallet;
@@ -27,8 +26,11 @@ async fn main() -> anyhow::Result<()> {
         .filter_level(log::LevelFilter::Info) // logging level of all other crates
         .init();
 
+    let mint_url = env::var("MINT_URL")?;
+    let ecash_wallet = ClientEcashWallet::new(&mint_url).await?;
+
     let cli_input = ClientCliInput::parse().await?;
-    let mut escrow_client = EscrowClient::from_cli_input(cli_input).await?;
+    let mut escrow_client = EscrowClient::from_cli_input(cli_input, ecash_wallet).await?;
 
     escrow_client.common_trade_flow().await?;
     debug!("Common trade flow completed");

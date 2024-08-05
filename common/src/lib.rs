@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TradeContract {
     pub trade_description: String,
-    pub trade_mint_url: String,
     pub trade_amount_sat: u64,
     pub npub_seller: String,
     pub npub_buyer: String,
