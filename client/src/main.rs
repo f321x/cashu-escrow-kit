@@ -9,7 +9,7 @@ use anyhow::anyhow;
 use cashu_escrow_common as common;
 use cdk::nuts::PublicKey as EcashPubkey;
 use cli::trade_contract::FromClientCliInput;
-use cli::{ClientCliInput, TradeMode};
+use cli::ClientCliInput;
 use common::{cli::get_user_input, nostr::NostrClient, TradeContract};
 use dotenv::dotenv;
 use ecash::ClientEcashWallet;
@@ -38,10 +38,11 @@ async fn main() -> anyhow::Result<()> {
     let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
     let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
     let mut escrow_client = EscrowClient::new(
-        escrow_contract,
-        escrow_metadata,
         nostr_instance,
         escrow_wallet,
+        escrow_metadata,
+        escrow_contract,
+        cli_input.mode,
     );
 
     escrow_client.register_trade().await?;

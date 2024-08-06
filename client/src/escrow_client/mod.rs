@@ -6,11 +6,16 @@ use cdk::nuts::Token;
 
 use super::*;
 
+#[derive(Debug, Clone, Copy)]
+pub enum TradeMode {
+    Buyer,
+    Seller,
+}
+
 pub struct EscrowClientMetadata {
     pub escrow_coordinator_nostr_public_key: NostrPubkey,
     pub escrow_coordinator_ecash_public_key: Option<EcashPubkey>,
     pub escrow_start_timestamp: Option<Timestamp>,
-    pub mode: TradeMode,
 }
 
 impl EscrowClientMetadata {
@@ -19,32 +24,34 @@ impl EscrowClientMetadata {
             escrow_coordinator_nostr_public_key: cli_input.coordinator_nostr_pubkey,
             escrow_coordinator_ecash_public_key: None,
             escrow_start_timestamp: None,
-            mode: cli_input.mode,
         })
     }
 }
 
 pub struct EscrowClient {
-    pub nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
-    pub ecash_wallet: ClientEcashWallet,
-    pub escrow_metadata: EscrowClientMetadata, // data relevant for the application but not for the outcome of the trade contract
-    pub escrow_contract: TradeContract,
+    nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
+    ecash_wallet: ClientEcashWallet,
+    escrow_metadata: EscrowClientMetadata, // data relevant for the application but not for the outcome of the trade contract
+    escrow_contract: TradeContract,
+    trade_mode: TradeMode,
 }
 
 // todo: model EscrowClient as an state machine (stm). This will improve testability too.
 impl EscrowClient {
     // creates the inital state: the coordinator data isn't present.
     pub fn new(
-        escrow_contract: TradeContract,
-        escrow_metadata: EscrowClientMetadata,
         nostr_instance: ClientNostrInstance,
         ecash_wallet: ClientEcashWallet,
+        escrow_metadata: EscrowClientMetadata,
+        escrow_contract: TradeContract,
+        trade_mode: TradeMode,
     ) -> Self {
         Self {
-            escrow_contract,
-            escrow_metadata,
             nostr_instance,
             ecash_wallet,
+            escrow_metadata,
+            escrow_contract,
+            trade_mode,
         }
     }
 
@@ -75,7 +82,7 @@ impl EscrowClient {
     ///
     /// After this the state is token sent or received.
     pub async fn exchange_trade_token(&self) -> std::result::Result<(), anyhow::Error> {
-        match self.escrow_metadata.mode {
+        match self.trade_mode {
             TradeMode::Buyer => {
                 // todo: store the sent token in this instance
                 self.send_trade_token().await?;
