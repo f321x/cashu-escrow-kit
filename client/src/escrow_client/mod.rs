@@ -3,7 +3,6 @@ pub mod general_utils;
 mod seller_utils;
 
 use cdk::nuts::Token;
-use cli::trade_contract::FromClientCliInput;
 
 use super::*;
 
@@ -35,22 +34,18 @@ pub struct EscrowClient {
 // todo: model EscrowClient as an state machine (stm). This will improve testability too.
 impl EscrowClient {
     // creates the inital state: the coordinator data isn't present.
-    pub async fn from_cli_input(
-        cli_input: ClientCliInput,
+    pub fn new(
+        contract: TradeContract,
+        metadata: EscrowClientMetadata,
+        nostr_instance: ClientNostrInstance,
         ecash_wallet: ClientEcashWallet,
-    ) -> anyhow::Result<Self> {
-        let escrow_contract =
-            TradeContract::from_client_cli_input(&cli_input, ecash_wallet.trade_pubkey.clone())?;
-        let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
-        let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
-        let ecash_wallet = ecash_wallet;
-
-        Ok(Self {
+    ) -> Self {
+        Self {
+            escrow_contract: contract,
+            escrow_metadata: metadata,
             nostr_instance,
             ecash_wallet,
-            escrow_metadata,
-            escrow_contract,
-        })
+        }
     }
 
     /// The trade initialization is the same for both buyer and seller.

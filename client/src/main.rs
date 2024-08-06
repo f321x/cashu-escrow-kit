@@ -8,6 +8,7 @@ use std::env;
 use anyhow::anyhow;
 use cashu_escrow_common as common;
 use cdk::nuts::PublicKey as EcashPubkey;
+use cli::trade_contract::FromClientCliInput;
 use cli::{ClientCliInput, TradeMode};
 use common::{cli::get_user_input, nostr::NostrClient, TradeContract};
 use dotenv::dotenv;
@@ -33,7 +34,16 @@ async fn main() -> anyhow::Result<()> {
 
     let cli_input = ClientCliInput::parse().await?;
     //todo: create TradeContrac and ExcrowClientMetadata (models) from CLI input and pass them to the EscrowClient. The escrow client shouldn't depend on the CLI module.
-    let mut escrow_client = EscrowClient::from_cli_input(cli_input, escrow_wallet).await?;
+    let escrow_contract =
+        TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
+    let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
+    let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
+    let mut escrow_client = EscrowClient::new(
+        escrow_contract,
+        escrow_metadata,
+        nostr_instance,
+        escrow_wallet,
+    );
 
     escrow_client.register_trade().await?;
     debug!("Common trade registration completed");
