@@ -35,14 +35,14 @@ pub struct EscrowClient {
 impl EscrowClient {
     // creates the inital state: the coordinator data isn't present.
     pub fn new(
-        contract: TradeContract,
-        metadata: EscrowClientMetadata,
+        escrow_contract: TradeContract,
+        escrow_metadata: EscrowClientMetadata,
         nostr_instance: ClientNostrInstance,
         ecash_wallet: ClientEcashWallet,
     ) -> Self {
         Self {
-            escrow_contract: contract,
-            escrow_metadata: metadata,
+            escrow_contract,
+            escrow_metadata,
             nostr_instance,
             ecash_wallet,
         }

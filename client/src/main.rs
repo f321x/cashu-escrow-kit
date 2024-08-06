@@ -33,7 +33,6 @@ async fn main() -> anyhow::Result<()> {
     //todo: Ensure to have enough funds in the wallet. The buyer must probably transfer some ecash to the escrow wallet.
 
     let cli_input = ClientCliInput::parse().await?;
-    //todo: create TradeContrac and ExcrowClientMetadata (models) from CLI input and pass them to the EscrowClient. The escrow client shouldn't depend on the CLI module.
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
     let escrow_metadata = EscrowClientMetadata::from_client_cli_input(&cli_input)?;
