@@ -2,6 +2,7 @@ mod buyer_utils;
 pub mod general_utils;
 mod seller_utils;
 
+use cdk::nuts::Token;
 use cli::trade_contract::FromClientCliInput;
 
 use super::*;
@@ -31,7 +32,9 @@ pub struct EscrowClient {
     pub escrow_contract: TradeContract,
 }
 
+// todo: model EscrowClient as an state machine (stm). This will improve testability too.
 impl EscrowClient {
+    // creates the inital state: the coordinator data isn't present.
     pub async fn from_cli_input(
         cli_input: ClientCliInput,
         ecash_wallet: ClientEcashWallet,
@@ -50,8 +53,12 @@ impl EscrowClient {
         })
     }
 
-    // the common trade flow is similar for both buyer and seller
-    pub async fn common_trade_flow(&mut self) -> anyhow::Result<()> {
+    /// The trade initialization is the same for both buyer and seller.
+    ///
+    /// After this the coordinator data is set, state trade registered.
+    ///
+    /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
+    pub async fn register_trade(&mut self) -> anyhow::Result<()> {
         let coordinator_pk = &self.escrow_metadata.escrow_coordinator_nostr_public_key;
 
         // submits the trade contract to the coordinator to initiate the escrow service
@@ -69,14 +76,28 @@ impl EscrowClient {
         Ok(())
     }
 
-    pub async fn rest_trade_flow(&self) -> std::result::Result<(), anyhow::Error> {
+    /// Depending on the trade mode sends or receives the trade token.
+    ///
+    /// After this the state is token sent or received.
+    pub async fn exchange_trade_token(&self) -> std::result::Result<(), anyhow::Error> {
         match self.escrow_metadata.mode {
-            TradeMode::Buyer => self.buyer_trade_flow().await,
-            TradeMode::Seller => self.seller_trade_flow().await,
+            TradeMode::Buyer => {
+                // todo: store the sent token in this instance
+                self.send_trade_token().await?;
+                Ok(())
+            }
+            TradeMode::Seller => {
+                // todo: store the received token in this instance
+                self.receive_and_validate_trade_token().await?;
+                Ok(())
+            }
         }
     }
 
-    async fn buyer_trade_flow(&self) -> anyhow::Result<()> {
+    /// State change for the buyer. The state after that is token sent.
+    ///
+    /// Returns the sent trade token by this [`EscrowClient`].
+    async fn send_trade_token(&self) -> anyhow::Result<String> {
         let escrow_contract = &self.escrow_contract;
         let client_metadata = &self.escrow_metadata;
 
@@ -91,23 +112,34 @@ impl EscrowClient {
             .submit_trade_token_to_seller(&escrow_contract.npub_seller, &escrow_token)
             .await?;
 
-        // either send signature or begin dispute
-        Ok(())
+        Ok(escrow_token)
     }
 
-    async fn seller_trade_flow(&self) -> anyhow::Result<()> {
+    /// State change for a seller. The state after this is token received.
+    ///
+    /// Returns the received trade token by this [`EscrowClient`].
+    async fn receive_and_validate_trade_token(&self) -> anyhow::Result<Token> {
         let escrow_contract = &self.escrow_contract;
         let client_metadata = &self.escrow_metadata;
         let wallet = &self.ecash_wallet;
 
-        let _escrow_token = self
+        let escrow_token = self
             .nostr_instance
+            // todo: split method in receive and validate steps, single responsability principle.
             .await_and_validate_escrow_token(wallet, escrow_contract, client_metadata)
             .await?;
 
-        // send product and proof of delivery (oracle) to seller
+        Ok(escrow_token)
+    }
 
+    /// Depending on the trade mode deliver product/service or sign the token after receiving the service.
+    ///
+    /// The state after this operation is duties fulfilled.
+    pub async fn do_your_trade_duties(&self) -> anyhow::Result<()> {
+        // todo: as seller send product and proof of delivery (oracle) to seller.
         // await signature or begin dispute
+
+        // todo: as buyer either send signature or begin dispute
         Ok(())
     }
 }
