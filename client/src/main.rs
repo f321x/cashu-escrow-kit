@@ -27,13 +27,18 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let mint_url = env::var("MINT_URL")?;
-    let ecash_wallet = ClientEcashWallet::new(&mint_url).await?;
+    let escrow_wallet = ClientEcashWallet::new(&mint_url).await?;
+
+    //todo: Ensure to have enough funds in the wallet. The buyer must probably transfer some ecash to the escrow wallet.
 
     let cli_input = ClientCliInput::parse().await?;
-    let mut escrow_client = EscrowClient::from_cli_input(cli_input, ecash_wallet).await?;
+    //todo: create TradeContrac and ExcrowClientMetadata (models) from CLI input and pass them to the EscrowClient. The escrow client shouldn't depend on the CLI module.
+    let mut escrow_client = EscrowClient::from_cli_input(cli_input, escrow_wallet).await?;
 
-    escrow_client.common_trade_flow().await?;
-    debug!("Common trade flow completed");
+    escrow_client.register_trade().await?;
+    debug!("Common trade registration completed");
 
-    escrow_client.rest_trade_flow().await
+    escrow_client.exchange_trade_token().await?;
+
+    escrow_client.do_your_trade_duties().await
 }
