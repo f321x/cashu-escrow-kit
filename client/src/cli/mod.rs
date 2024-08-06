@@ -6,12 +6,6 @@ use nostr_sdk::Keys as NostrKeys;
 use nostr_sdk::PublicKey as NostrPubkey;
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Copy)]
-pub enum TradeMode {
-    Buyer,
-    Seller,
-}
-
 #[derive(Debug)]
 struct RawCliInput {
     buyer_npub: String,
