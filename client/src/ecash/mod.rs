@@ -38,16 +38,12 @@ impl ClientEcashWallet {
     fn assemble_escrow_conditions(
         &self,
         contract: &TradeContract,
-        escrow_metadata: &EscrowClientMetadata,
+        escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<SpendingConditions> {
         let seller_pubkey = EscrowPubkey::from_str(&contract.seller_ecash_public_key)?;
         let buyer_pubkey = EscrowPubkey::from_str(&contract.buyer_ecash_public_key)?;
-        let escrow_pubkey = escrow_metadata
-            .escrow_coordinator_ecash_public_key
-            .ok_or(anyhow!("Escrow coordinator ecash public key not set"))?;
-        let start_timestamp = escrow_metadata
-            .escrow_start_timestamp
-            .ok_or(anyhow!("Escrow start timestamp not set"))?;
+        let coordinator_escrow_pubkey = escrow_registration.coordinator_escrow_pubkey;
+        let start_timestamp = escrow_registration.escrow_start_time;
 
         let locktime = start_timestamp.as_u64() + contract.time_limit;
 
@@ -55,7 +51,7 @@ impl ClientEcashWallet {
             seller_pubkey,
             Some(Conditions::new(
                 Some(locktime),
-                Some(vec![buyer_pubkey, escrow_pubkey]),
+                Some(vec![buyer_pubkey, coordinator_escrow_pubkey]),
                 Some(vec![buyer_pubkey]),
                 Some(2),
                 Some(SigFlag::SigAll),
@@ -67,9 +63,9 @@ impl ClientEcashWallet {
     pub async fn create_escrow_token(
         &self,
         contract: &TradeContract,
-        escrow_metadata: &EscrowClientMetadata,
+        escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<String> {
-        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_metadata)?;
+        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_registration)?;
         let token = self
             .wallet
             .send(
@@ -86,9 +82,9 @@ impl ClientEcashWallet {
         &self,
         escrow_token: &str,
         contract: &TradeContract,
-        escrow_metadata: &EscrowClientMetadata,
+        escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<Token> {
-        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_metadata)?;
+        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_registration)?;
         let token = Token::from_str(escrow_token)?;
         self.wallet.verify_token_p2pk(&token, spending_conditions)?;
         Ok(token)

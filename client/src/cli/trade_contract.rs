@@ -38,6 +38,7 @@ impl FromClientCliInput for TradeContract {
             trade_amount_sat: 5000,
             npub_seller,
             npub_buyer,
+            npub_coordinator: cli_input.coordinator_nostr_pubkey,
             time_limit: 3 * 24 * 60 * 60,
             seller_ecash_public_key: ecash_pubkey_seller,
             buyer_ecash_public_key: ecash_pubkey_buyer,

@@ -92,15 +92,11 @@ impl ClientNostrInstance {
         &self,
         wallet: &ClientEcashWallet,
         contract: &TradeContract,
-        metadata: &EscrowClientMetadata,
+        metadata: &EscrowRegistration,
     ) -> anyhow::Result<cdk::nuts::Token> {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
-            .since(
-                metadata
-                    .escrow_start_timestamp
-                    .expect("Escrow timestamp not set"),
-            )
+            .since(metadata.escrow_start_time)
             .author(nostr_sdk::PublicKey::from_bech32(&contract.npub_buyer)?);
 
         let subscription_id = self
