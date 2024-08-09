@@ -12,26 +12,24 @@ pub enum TradeMode {
     Seller,
 }
 
-pub struct EscrowClientMetadata {
-    pub escrow_coordinator_nostr_public_key: NostrPubkey,
-    pub escrow_coordinator_ecash_public_key: Option<EcashPubkey>,
-    pub escrow_start_timestamp: Option<Timestamp>,
+pub struct EscrowRegistration {
+    pub coordinator_escrow_pubkey: EcashPubkey,
+    pub escrow_start_time: Timestamp,
 }
 
-impl EscrowClientMetadata {
-    pub fn from_client_cli_input(cli_input: &ClientCliInput) -> anyhow::Result<Self> {
-        Ok(Self {
-            escrow_coordinator_nostr_public_key: cli_input.coordinator_nostr_pubkey,
-            escrow_coordinator_ecash_public_key: None,
-            escrow_start_timestamp: None,
-        })
+impl EscrowRegistration {
+    pub fn new(coordinator_escrow_pubkey: EcashPubkey, escrow_start_time: Timestamp) -> Self {
+        Self {
+            coordinator_escrow_pubkey,
+            escrow_start_time,
+        }
     }
 }
 
 pub struct EscrowClient {
     nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
     ecash_wallet: ClientEcashWallet,
-    escrow_metadata: EscrowClientMetadata, // data relevant for the application but not for the outcome of the trade contract
+    escrow_registration: Option<EscrowRegistration>,
     escrow_contract: TradeContract,
     trade_mode: TradeMode,
 }
@@ -42,14 +40,13 @@ impl EscrowClient {
     pub fn new(
         nostr_instance: ClientNostrInstance,
         ecash_wallet: ClientEcashWallet,
-        escrow_metadata: EscrowClientMetadata,
         escrow_contract: TradeContract,
         trade_mode: TradeMode,
     ) -> Self {
         Self {
             nostr_instance,
             ecash_wallet,
-            escrow_metadata,
+            escrow_registration: None,
             escrow_contract,
             trade_mode,
         }
@@ -61,7 +58,7 @@ impl EscrowClient {
     ///
     /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
     pub async fn register_trade(&mut self) -> anyhow::Result<()> {
-        let coordinator_pk = &self.escrow_metadata.escrow_coordinator_nostr_public_key;
+        let coordinator_pk = &self.escrow_contract.npub_coordinator;
 
         // submits the trade contract to the coordinator to initiate the escrow service
         self.nostr_instance
@@ -73,8 +70,9 @@ impl EscrowClient {
             .get_escrow_coordinator_pk(coordinator_pk)
             .await?;
 
-        self.escrow_metadata.escrow_coordinator_ecash_public_key = Some(escrow_coordinator_pk_ts.0);
-        self.escrow_metadata.escrow_start_timestamp = Some(escrow_coordinator_pk_ts.1);
+        let escrow_registration =
+            EscrowRegistration::new(escrow_coordinator_pk_ts.0, escrow_coordinator_pk_ts.1);
+        self.escrow_registration = Some(escrow_registration);
         Ok(())
     }
 
@@ -101,11 +99,14 @@ impl EscrowClient {
     /// Returns the sent trade token by this [`EscrowClient`].
     async fn send_trade_token(&self) -> anyhow::Result<String> {
         let escrow_contract = &self.escrow_contract;
-        let client_metadata = &self.escrow_metadata;
+        let escrow_registration = self
+            .escrow_registration
+            .as_ref()
+            .ok_or(anyhow!("Escrow registration not set, wrong state"))?;
 
         let escrow_token = self
             .ecash_wallet
-            .create_escrow_token(escrow_contract, client_metadata)
+            .create_escrow_token(escrow_contract, escrow_registration)
             .await?;
 
         debug!("Sending token to the seller: {}", escrow_token.as_str());
@@ -122,13 +123,16 @@ impl EscrowClient {
     /// Returns the received trade token by this [`EscrowClient`].
     async fn receive_and_validate_trade_token(&self) -> anyhow::Result<Token> {
         let escrow_contract = &self.escrow_contract;
-        let client_metadata = &self.escrow_metadata;
+        let client_registration = self
+            .escrow_registration
+            .as_ref()
+            .ok_or(anyhow!("Escrow registration not set, wrong state"))?;
         let wallet = &self.ecash_wallet;
 
         let escrow_token = self
             .nostr_instance
             // todo: split method in receive and validate steps, single responsability principle.
-            .await_and_validate_escrow_token(wallet, escrow_contract, client_metadata)
+            .await_and_validate_escrow_token(wallet, escrow_contract, client_registration)
             .await?;
 
         Ok(escrow_token)
