@@ -28,7 +28,7 @@ impl NostrClient {
             .add_relay("wss://ftp.halifax.rwth-aachen.de/nostr")
             .await?;
         client.add_relay("wss://nostr.mom").await?;
-        client.add_relay("wss://relay.nostrplebs.com").await?;
+        //client.add_relay("wss://relay.nostrplebs.com").await?; (having errors)
 
         // Connect to relays
         client.connect().await;
@@ -50,7 +50,7 @@ impl NostrClient {
     // coordinator specific function?
     pub async fn send_escrow_pubkeys(
         &self,
-        receivers: (&str, &str),
+        receivers: (PublicKey, PublicKey),
         id: &[u8; 32],
         trade_pk: &str,
     ) -> anyhow::Result<()> {
@@ -60,10 +60,10 @@ impl NostrClient {
             escrow_start_ts: Timestamp::now(),
         })?;
         self.client
-            .send_direct_msg(PublicKey::from_bech32(receivers.0)?, &message, None)
+            .send_direct_msg(receivers.0, &message, None)
             .await?;
         self.client
-            .send_direct_msg(PublicKey::from_bech32(receivers.1)?, &message, None)
+            .send_direct_msg(receivers.1, &message, None)
             .await?;
         Ok(())
     }
@@ -89,11 +89,11 @@ impl NostrClient {
     // client specific function?
     pub async fn send_trade_token_to_seller(
         &self,
-        seller_npub: &str,
+        seller_npubkey: PublicKey,
         token: &str,
     ) -> anyhow::Result<()> {
         self.client
-            .send_direct_msg(PublicKey::from_bech32(seller_npub)?, token, None)
+            .send_direct_msg(seller_npubkey, token, None)
             .await?;
         Ok(())
     }
