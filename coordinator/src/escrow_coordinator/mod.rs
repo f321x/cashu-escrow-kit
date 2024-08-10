@@ -95,7 +95,7 @@ impl EscrowCoordinator {
         );
         self.nostr_client
             .send_escrow_pubkeys(
-                (&trade.npub_buyer, &trade.npub_seller),
+                (trade.npubkey_buyer, trade.npubkey_seller),
                 contract_hash,
                 &contract_secret.public_key().to_hex(),
             )

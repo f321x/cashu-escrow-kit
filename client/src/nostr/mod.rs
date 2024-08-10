@@ -79,11 +79,11 @@ impl ClientNostrInstance {
 
     pub async fn submit_trade_token_to_seller(
         &self,
-        seller_npub: &str,
+        seller_npubkey: PublicKey,
         token: &str,
     ) -> anyhow::Result<()> {
         self.nostr_client
-            .send_trade_token_to_seller(seller_npub, token)
+            .send_trade_token_to_seller(seller_npubkey, token)
             .await?;
         Ok(())
     }
@@ -97,7 +97,7 @@ impl ClientNostrInstance {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
             .since(metadata.escrow_start_time)
-            .author(nostr_sdk::PublicKey::from_bech32(&contract.npub_buyer)?);
+            .author(contract.npubkey_buyer);
 
         let subscription_id = self
             .nostr_client

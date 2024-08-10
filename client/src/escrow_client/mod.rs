@@ -58,7 +58,7 @@ impl EscrowClient {
     ///
     /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
     pub async fn register_trade(&mut self) -> anyhow::Result<()> {
-        let coordinator_pk = &self.escrow_contract.npub_coordinator;
+        let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
 
         // submits the trade contract to the coordinator to initiate the escrow service
         self.nostr_instance
@@ -112,7 +112,7 @@ impl EscrowClient {
         debug!("Sending token to the seller: {}", escrow_token.as_str());
 
         self.nostr_instance
-            .submit_trade_token_to_seller(&escrow_contract.npub_seller, &escrow_token)
+            .submit_trade_token_to_seller(escrow_contract.npubkey_seller, &escrow_token)
             .await?;
 
         Ok(escrow_token)
