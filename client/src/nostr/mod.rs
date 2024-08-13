@@ -1,8 +1,5 @@
-mod client_nostr_utils;
-
 use cashu_escrow_common::nostr::RegistrationMessage;
 
-use self::client_nostr_utils::*;
 use super::*;
 
 // here we can somehow make NostrInstance generic to be either a full Nostr Client or only a Nostr Signer depending on
@@ -69,7 +66,7 @@ impl ClientNostrInstance {
                     .decrypt_msg(&event.content, &event.author())
                 {
                     debug!("Received event: {:?}", &decrypted);
-                    if let Ok(registration_message) = parse_registration_message(&decrypted).await {
+                    if let Ok(registration_message) = serde_json::from_str(&decrypted) {
                         self.nostr_client.client.unsubscribe(subscription_id).await;
                         return Ok(registration_message);
                     }
