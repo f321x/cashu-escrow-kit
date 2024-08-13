@@ -65,13 +65,15 @@ impl EscrowClient {
             .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
             .await?;
 
-        let escrow_coordinator_pk_ts: (EcashPubkey, Timestamp) = self
+        let registration_message = self
             .nostr_instance
-            .get_escrow_coordinator_pk(coordinator_pk)
+            .receive_registration_message(coordinator_pk)
             .await?;
 
-        let escrow_registration =
-            EscrowRegistration::new(escrow_coordinator_pk_ts.0, escrow_coordinator_pk_ts.1);
+        let escrow_registration = EscrowRegistration::new(
+            EcashPubkey::from_hex(registration_message.coordinator_escrow_pubkey)?,
+            registration_message.escrow_start_ts,
+        );
         self.escrow_registration = Some(escrow_registration);
         Ok(())
     }
