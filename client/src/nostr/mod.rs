@@ -1,5 +1,7 @@
 mod client_nostr_utils;
 
+use cashu_escrow_common::nostr::RegistrationMessage;
+
 use self::client_nostr_utils::*;
 use super::*;
 
@@ -43,10 +45,10 @@ impl ClientNostrInstance {
 
     // await the answer to the submitted contract, once the coordinator returns the ecash public key
     // the escrow service is confirmed by the coordinator
-    pub async fn get_escrow_coordinator_pk(
+    pub async fn receive_registration_message(
         &self,
         coordinator_pk: &NostrPubkey,
-    ) -> anyhow::Result<(EcashPubkey, Timestamp)> {
+    ) -> anyhow::Result<RegistrationMessage> {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
             .since(Timestamp::now())
@@ -67,9 +69,9 @@ impl ClientNostrInstance {
                     .decrypt_msg(&event.content, &event.author())
                 {
                     debug!("Received event: {:?}", &decrypted);
-                    if let Ok(ecash_pubkey_and_timestamp) = parse_escrow_pk(&decrypted).await {
+                    if let Ok(registration_message) = parse_registration_message(&decrypted).await {
                         self.nostr_client.client.unsubscribe(subscription_id).await;
-                        return Ok(ecash_pubkey_and_timestamp);
+                        return Ok(registration_message);
                     }
                 }
             }

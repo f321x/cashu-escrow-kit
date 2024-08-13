@@ -9,8 +9,8 @@ pub struct NostrClient {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PubkeyMessage {
-    pub escrow_coordinator_pubkey: String,
+pub struct RegistrationMessage {
+    pub coordinator_escrow_pubkey: String,
     pub trade_id_hex: String,
     pub escrow_start_ts: Timestamp,
 }
@@ -54,8 +54,8 @@ impl NostrClient {
         id: &[u8; 32],
         trade_pk: &str,
     ) -> anyhow::Result<()> {
-        let message = serde_json::to_string(&PubkeyMessage {
-            escrow_coordinator_pubkey: trade_pk.to_string(),
+        let message = serde_json::to_string(&RegistrationMessage {
+            coordinator_escrow_pubkey: trade_pk.to_string(),
             trade_id_hex: hex::encode(id),
             escrow_start_ts: Timestamp::now(),
         })?;
