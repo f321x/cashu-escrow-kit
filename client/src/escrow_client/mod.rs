@@ -1,3 +1,4 @@
+use crate::common::model::EscrowRegistration;
 use cdk::nuts::Token;
 
 use super::*;
@@ -6,20 +7,6 @@ use super::*;
 pub enum TradeMode {
     Buyer,
     Seller,
-}
-
-pub struct EscrowRegistration {
-    pub coordinator_escrow_pubkey: EcashPubkey,
-    pub escrow_start_time: Timestamp,
-}
-
-impl EscrowRegistration {
-    pub fn new(coordinator_escrow_pubkey: EcashPubkey, escrow_start_time: Timestamp) -> Self {
-        Self {
-            coordinator_escrow_pubkey,
-            escrow_start_time,
-        }
-    }
 }
 
 pub struct EscrowClient {
@@ -61,15 +48,11 @@ impl EscrowClient {
             .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
             .await?;
 
-        let registration_message = self
+        let escrow_registration = self
             .nostr_instance
             .receive_registration_message(coordinator_pk)
             .await?;
 
-        let escrow_registration = EscrowRegistration::new(
-            EcashPubkey::from_hex(registration_message.coordinator_escrow_pubkey)?,
-            registration_message.escrow_start_ts,
-        );
         self.escrow_registration = Some(escrow_registration);
         Ok(())
     }

@@ -7,17 +7,16 @@ use std::env;
 
 use anyhow::anyhow;
 use cashu_escrow_common as common;
-use cdk::nuts::PublicKey as EcashPubkey;
 use cli::trade_contract::FromClientCliInput;
 use cli::ClientCliInput;
-use common::{cli::get_user_input, nostr::NostrClient, TradeContract};
+use common::model::TradeContract;
+use common::{cli::get_user_input, nostr::NostrClient};
 use dotenv::dotenv;
 use ecash::ClientEcashWallet;
 use escrow_client::*;
 use log::{debug, info};
 use nostr::ClientNostrInstance;
 use nostr_sdk::prelude::*;
-use nostr_sdk::PublicKey as NostrPubkey;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -1,4 +1,5 @@
-use cashu_escrow_common::nostr::RegistrationMessage;
+use cashu_escrow_common::model::EscrowRegistration;
+use nostr_sdk::PublicKey;
 
 use super::*;
 
@@ -31,7 +32,7 @@ impl ClientNostrInstance {
     pub async fn submit_escrow_contract(
         &self,
         contract: &TradeContract,
-        coordinator_pk: &NostrPubkey,
+        coordinator_pk: &PublicKey,
     ) -> anyhow::Result<()> {
         let coordinator_pk_bech32 = coordinator_pk.to_bech32()?;
         self.nostr_client
@@ -44,8 +45,8 @@ impl ClientNostrInstance {
     // the escrow service is confirmed by the coordinator
     pub async fn receive_registration_message(
         &self,
-        coordinator_pk: &NostrPubkey,
-    ) -> anyhow::Result<RegistrationMessage> {
+        coordinator_pk: &PublicKey,
+    ) -> anyhow::Result<EscrowRegistration> {
         let filter_note = Filter::new()
             .kind(Kind::EncryptedDirectMessage)
             .since(Timestamp::now())
@@ -66,9 +67,9 @@ impl ClientNostrInstance {
                     .decrypt_msg(&event.content, &event.author())
                 {
                     debug!("Received event: {:?}", &decrypted);
-                    if let Ok(registration_message) = serde_json::from_str(&decrypted) {
+                    if let Ok(escrow_registration) = serde_json::from_str(&decrypted) {
                         self.nostr_client.client.unsubscribe(subscription_id).await;
-                        return Ok(registration_message);
+                        return Ok(escrow_registration);
                     }
                 }
             }
