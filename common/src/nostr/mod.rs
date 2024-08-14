@@ -39,7 +39,7 @@ impl NostrClient {
     }
 
     // coordinator specific function?
-    pub async fn send_escrow_pubkeys(
+    pub async fn send_escrow_registration(
         &self,
         receivers: (PublicKey, PublicKey),
         id: &[u8; 32],
@@ -52,16 +52,16 @@ impl NostrClient {
         })?;
         // todo: replace deprecated method
         self.client
-            .send_direct_msg(receivers.0, &registration_json, None)
+            .send_private_msg(receivers.0, &registration_json, None)
             .await?;
         self.client
-            .send_direct_msg(receivers.1, &registration_json, None)
+            .send_private_msg(receivers.1, &registration_json, None)
             .await?;
         Ok(())
     }
 
     // client specific function?
-    pub async fn send_escrow_contract(
+    pub async fn send_trade_contract(
         &self,
         contract: &TradeContract,
         coordinator_pk_bech32: &str,
@@ -69,7 +69,7 @@ impl NostrClient {
         let message = serde_json::to_string(contract)?;
         dbg!("sending contract to coordinator...");
         self.client
-            .send_direct_msg(
+            .send_private_msg(
                 PublicKey::from_bech32(coordinator_pk_bech32)?,
                 &message,
                 None,
@@ -85,7 +85,7 @@ impl NostrClient {
         token: &str,
     ) -> anyhow::Result<()> {
         self.client
-            .send_direct_msg(seller_npubkey, token, None)
+            .send_private_msg(seller_npubkey, token, None)
             .await?;
         Ok(())
     }
