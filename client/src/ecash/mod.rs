@@ -1,6 +1,7 @@
 use super::*;
 
-use cdk::nuts::PublicKey as EscrowPubkey;
+use crate::common::model::EscrowRegistration;
+use cdk::nuts::PublicKey;
 use cdk::{
     amount::SplitTarget,
     cdk_database::WalletMemoryDatabase,
@@ -13,7 +14,7 @@ use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct ClientEcashWallet {
-    secret: SecretKey,
+    _secret: SecretKey,
     pub wallet: Wallet,
     pub trade_pubkey: String,
 }
@@ -21,15 +22,15 @@ pub struct ClientEcashWallet {
 impl ClientEcashWallet {
     pub async fn new(mint_url: &str) -> anyhow::Result<Self> {
         let localstore = WalletMemoryDatabase::default();
-        let secret = SecretKey::generate();
-        let trade_pubkey: String = secret.public_key().to_string();
+        let _secret = SecretKey::generate();
+        let trade_pubkey: String = _secret.public_key().to_string();
         let seed = rand::thread_rng().gen::<[u8; 32]>();
         info!("Trade ecash pubkey: {}", trade_pubkey);
 
         let wallet = Wallet::new(mint_url, CurrencyUnit::Sat, Arc::new(localstore), &seed);
 
         Ok(Self {
-            secret,
+            _secret,
             wallet,
             trade_pubkey,
         })
@@ -40,8 +41,8 @@ impl ClientEcashWallet {
         contract: &TradeContract,
         escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<SpendingConditions> {
-        let seller_pubkey = EscrowPubkey::from_str(&contract.seller_ecash_public_key)?;
-        let buyer_pubkey = EscrowPubkey::from_str(&contract.buyer_ecash_public_key)?;
+        let seller_pubkey = PublicKey::from_str(&contract.seller_ecash_public_key)?;
+        let buyer_pubkey = PublicKey::from_str(&contract.buyer_ecash_public_key)?;
         let coordinator_escrow_pubkey = escrow_registration.coordinator_escrow_pubkey;
         let start_timestamp = escrow_registration.escrow_start_time;
 

@@ -1,18 +1,9 @@
-use crate::TradeContract;
-use ndk::{nostr::nips::nip04, prelude::*};
-use nostr_sdk as ndk;
-use serde::{Deserialize, Serialize};
+use crate::model::{EscrowRegistration, TradeContract};
+use nostr_sdk::{nostr::nips::nip04, prelude::*};
 
 pub struct NostrClient {
     keypair: Keys,
     pub client: Client,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct RegistrationMessage {
-    pub coordinator_escrow_pubkey: String,
-    pub trade_id_hex: String,
-    pub escrow_start_ts: Timestamp,
 }
 
 impl NostrClient {
@@ -54,16 +45,17 @@ impl NostrClient {
         id: &[u8; 32],
         trade_pk: &str,
     ) -> anyhow::Result<()> {
-        let message = serde_json::to_string(&RegistrationMessage {
-            coordinator_escrow_pubkey: trade_pk.to_string(),
-            trade_id_hex: hex::encode(id),
-            escrow_start_ts: Timestamp::now(),
+        let registration_json = serde_json::to_string(&EscrowRegistration {
+            escrow_id_hex: hex::encode(id),
+            coordinator_escrow_pubkey: cdk::nuts::PublicKey::from_hex(trade_pk)?,
+            escrow_start_time: Timestamp::now(),
         })?;
+        // todo: replace deprecated method
         self.client
-            .send_direct_msg(receivers.0, &message, None)
+            .send_direct_msg(receivers.0, &registration_json, None)
             .await?;
         self.client
-            .send_direct_msg(receivers.1, &message, None)
+            .send_direct_msg(receivers.1, &registration_json, None)
             .await?;
         Ok(())
     }
