@@ -31,7 +31,7 @@ impl EscrowCoordinator {
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
+            .kind(Kind::PrivateDirectMessage)
             .custom_tag(
                 SingleLetterTag::lowercase(Alphabet::P),
                 [NostrPubkey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
@@ -97,7 +97,7 @@ impl EscrowCoordinator {
             },
         );
         self.nostr_client
-            .send_escrow_pubkeys(
+            .send_escrow_registration(
                 (trade.npubkey_buyer, trade.npubkey_seller),
                 contract_hash,
                 &contract_secret.public_key().to_hex(),

@@ -36,7 +36,7 @@ impl ClientNostrInstance {
     ) -> anyhow::Result<()> {
         let coordinator_pk_bech32 = coordinator_pk.to_bech32()?;
         self.nostr_client
-            .send_escrow_contract(contract, &coordinator_pk_bech32)
+            .send_trade_contract(contract, &coordinator_pk_bech32)
             .await?;
         Ok(())
     }
@@ -48,7 +48,7 @@ impl ClientNostrInstance {
         coordinator_pk: &PublicKey,
     ) -> anyhow::Result<EscrowRegistration> {
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
+            .kind(Kind::PrivateDirectMessage)
             .since(Timestamp::now())
             .author(*coordinator_pk);
 
@@ -95,7 +95,7 @@ impl ClientNostrInstance {
         metadata: &EscrowRegistration,
     ) -> anyhow::Result<cdk::nuts::Token> {
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
+            .kind(Kind::PrivateDirectMessage)
             .since(metadata.escrow_start_time)
             .author(contract.npubkey_buyer);
 
