@@ -31,7 +31,7 @@ impl EscrowCoordinator {
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
         let filter_note = Filter::new()
-            .kind(Kind::PrivateDirectMessage)
+            .kind(Kind::EncryptedDirectMessage)
             .custom_tag(
                 SingleLetterTag::lowercase(Alphabet::P),
                 [NostrPubkey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
@@ -41,7 +41,7 @@ impl EscrowCoordinator {
         self.nostr_client
             .client
             .subscribe(vec![filter_note], None)
-            .await;
+            .await?;
         let mut notifications = self.nostr_client.client.notifications();
 
         while let Ok(notification) = notifications.recv().await {

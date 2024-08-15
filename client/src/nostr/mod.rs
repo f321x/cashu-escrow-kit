@@ -48,7 +48,7 @@ impl ClientNostrInstance {
         coordinator_pk: &PublicKey,
     ) -> anyhow::Result<EscrowRegistration> {
         let filter_note = Filter::new()
-            .kind(Kind::PrivateDirectMessage)
+            .kind(Kind::EncryptedDirectMessage)
             .since(Timestamp::now())
             .author(*coordinator_pk);
 
@@ -56,7 +56,8 @@ impl ClientNostrInstance {
             .nostr_client
             .client
             .subscribe(vec![filter_note], None)
-            .await;
+            .await?
+            .val;
 
         let mut notifications = self.nostr_client.client.notifications();
 
@@ -95,7 +96,7 @@ impl ClientNostrInstance {
         metadata: &EscrowRegistration,
     ) -> anyhow::Result<cdk::nuts::Token> {
         let filter_note = Filter::new()
-            .kind(Kind::PrivateDirectMessage)
+            .kind(Kind::EncryptedDirectMessage)
             .since(metadata.escrow_start_time)
             .author(contract.npubkey_buyer);
 
@@ -103,7 +104,8 @@ impl ClientNostrInstance {
             .nostr_client
             .client
             .subscribe(vec![filter_note], None)
-            .await;
+            .await?
+            .val;
 
         let mut notifications = self.nostr_client.client.notifications();
 

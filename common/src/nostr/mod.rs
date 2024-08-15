@@ -52,10 +52,10 @@ impl NostrClient {
         })?;
         // todo: replace deprecated method
         self.client
-            .send_private_msg(receivers.0, &registration_json, None)
+            .send_direct_msg(receivers.0, &registration_json, None)
             .await?;
         self.client
-            .send_private_msg(receivers.1, &registration_json, None)
+            .send_direct_msg(receivers.1, &registration_json, None)
             .await?;
         Ok(())
     }
@@ -69,7 +69,7 @@ impl NostrClient {
         let message = serde_json::to_string(contract)?;
         dbg!("sending contract to coordinator...");
         self.client
-            .send_private_msg(
+            .send_direct_msg(
                 PublicKey::from_bech32(coordinator_pk_bech32)?,
                 &message,
                 None,
@@ -85,7 +85,7 @@ impl NostrClient {
         token: &str,
     ) -> anyhow::Result<()> {
         self.client
-            .send_private_msg(seller_npubkey, token, None)
+            .send_direct_msg(seller_npubkey, token, None)
             .await?;
         Ok(())
     }
