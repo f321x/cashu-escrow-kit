@@ -30,13 +30,11 @@ impl EscrowCoordinator {
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
+        let my_pubkey = NostrPubkey::from_bech32(&self.nostr_client.get_npub()?)?;
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
-            .custom_tag(
-                SingleLetterTag::lowercase(Alphabet::P),
-                [NostrPubkey::from_bech32(&self.nostr_client.get_npub()?)?.to_hex()],
-            )
-            .since(Timestamp::now());
+            .kind(Kind::GiftWrap)
+            .pubkey(my_pubkey)
+            .limit(0);
 
         self.nostr_client
             .client
@@ -46,14 +44,12 @@ impl EscrowCoordinator {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Some(decrypted) = self
-                    .nostr_client
-                    .decrypt_msg(&event.content, &event.author())
+                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
                 {
-                    dbg!("Received event: {:?}", &decrypted);
                     if let Ok((contract_hash, contract)) =
-                        self.parse_contract(decrypted.as_str()).await
+                        self.parse_contract(&unwrapped_gift.rumor.content).await
                     {
+                        dbg!("Received contract: {}", &contract.trade_description);
                         if self.pending_contracts.contains_key(&contract_hash) {
                             self.pending_contracts.remove(&contract_hash);
                             self.begin_trade(&contract_hash, &contract).await?;

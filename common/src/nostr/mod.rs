@@ -1,5 +1,5 @@
 use crate::model::{EscrowRegistration, TradeContract};
-use nostr_sdk::{nostr::nips::nip04, prelude::*};
+use nostr_sdk::prelude::*;
 
 pub struct NostrClient {
     keypair: Keys,
@@ -30,14 +30,6 @@ impl NostrClient {
         Ok(self.keypair.public_key().to_bech32()?)
     }
 
-    pub fn decrypt_msg(&self, msg: &str, sender_pk: &PublicKey) -> Option<String> {
-        let secret_key = self
-            .keypair
-            .secret_key()
-            .expect("The key pair must be set if we have a valid instance.");
-        nip04::decrypt(secret_key, sender_pk, msg).ok()
-    }
-
     // coordinator specific function?
     pub async fn send_escrow_registration(
         &self,
@@ -52,10 +44,10 @@ impl NostrClient {
         })?;
         // todo: replace deprecated method
         self.client
-            .send_direct_msg(receivers.0, &registration_json, None)
+            .send_private_msg(receivers.0, &registration_json, None)
             .await?;
         self.client
-            .send_direct_msg(receivers.1, &registration_json, None)
+            .send_private_msg(receivers.1, &registration_json, None)
             .await?;
         Ok(())
     }
@@ -69,7 +61,7 @@ impl NostrClient {
         let message = serde_json::to_string(contract)?;
         dbg!("sending contract to coordinator...");
         self.client
-            .send_direct_msg(
+            .send_private_msg(
                 PublicKey::from_bech32(coordinator_pk_bech32)?,
                 &message,
                 None,
@@ -85,7 +77,7 @@ impl NostrClient {
         token: &str,
     ) -> anyhow::Result<()> {
         self.client
-            .send_direct_msg(seller_npubkey, token, None)
+            .send_private_msg(seller_npubkey, token, None)
             .await?;
         Ok(())
     }
