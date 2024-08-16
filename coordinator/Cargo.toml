@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nostr-sdk = { version = "0.33.0", features = ["nip04"] }
+nostr-sdk = { version = "0.33.0", features = [] }
 cdk = "0.1.1"
 dotenv = "0.15.0"
 anyhow = "1.0.86"

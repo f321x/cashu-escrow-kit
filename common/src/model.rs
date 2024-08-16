@@ -14,7 +14,7 @@ pub struct TradeContract {
     pub buyer_ecash_public_key: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EscrowRegistration {
     pub escrow_id_hex: String,
     #[serde(with = "crate::cdk_pubkey_serde")]

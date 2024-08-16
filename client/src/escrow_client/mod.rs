@@ -48,9 +48,10 @@ impl EscrowClient {
             .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
             .await?;
 
+        let my_pubkey = PublicKey::from_bech32(self.nostr_instance.nostr_client.get_npub()?)?;
         let escrow_registration = self
             .nostr_instance
-            .receive_registration_message(coordinator_pk)
+            .receive_registration_message(&my_pubkey)
             .await?;
 
         self.escrow_registration = Some(escrow_registration);

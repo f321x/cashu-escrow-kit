@@ -45,12 +45,12 @@ impl ClientNostrInstance {
     // the escrow service is confirmed by the coordinator
     pub async fn receive_registration_message(
         &self,
-        coordinator_pk: &PublicKey,
+        receiver_pk: &PublicKey,
     ) -> anyhow::Result<EscrowRegistration> {
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
-            .since(Timestamp::now())
-            .author(*coordinator_pk);
+            .kind(Kind::GiftWrap)
+            .pubkey(*receiver_pk)
+            .limit(0);
 
         let subscription_id = self
             .nostr_client
@@ -63,12 +63,12 @@ impl ClientNostrInstance {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Some(decrypted) = self
-                    .nostr_client
-                    .decrypt_msg(&event.content, &event.author())
+                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
                 {
-                    debug!("Received event: {:?}", &decrypted);
-                    if let Ok(escrow_registration) = serde_json::from_str(&decrypted) {
+                    if let Ok(escrow_registration) =
+                        serde_json::from_str(&unwrapped_gift.rumor.content)
+                    {
+                        debug!("Received escrow registration: {:?}", &escrow_registration);
                         self.nostr_client.client.unsubscribe(subscription_id).await;
                         return Ok(escrow_registration);
                     }
@@ -96,9 +96,9 @@ impl ClientNostrInstance {
         metadata: &EscrowRegistration,
     ) -> anyhow::Result<cdk::nuts::Token> {
         let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
-            .since(metadata.escrow_start_time)
-            .author(contract.npubkey_buyer);
+            .kind(Kind::GiftWrap)
+            .pubkey(contract.npubkey_seller)
+            .limit(0);
 
         let subscription_id = self
             .nostr_client
@@ -111,14 +111,13 @@ impl ClientNostrInstance {
 
         while let Ok(notification) = notifications.recv().await {
             if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Some(decrypted) = self
-                    .nostr_client
-                    .decrypt_msg(&event.content, &event.author())
+                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
                 {
-                    debug!("Received token event: {:?}", &decrypted);
+                    let escrow_token = &unwrapped_gift.rumor.content;
                     if let Ok(escrow_token) =
-                        wallet.validate_escrow_token(&decrypted, contract, metadata)
+                        wallet.validate_escrow_token(escrow_token, contract, metadata)
                     {
+                        debug!("Received token event: {:?}", escrow_token);
                         self.nostr_client.client.unsubscribe(subscription_id).await;
                         return Ok(escrow_token);
                     }
