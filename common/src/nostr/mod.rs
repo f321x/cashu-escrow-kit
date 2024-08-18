@@ -1,4 +1,5 @@
 use crate::model::{EscrowRegistration, TradeContract};
+use anyhow::anyhow;
 use nostr_sdk::prelude::*;
 
 pub struct NostrClient {
@@ -28,6 +29,36 @@ impl NostrClient {
 
     pub fn get_npub(&self) -> anyhow::Result<String> {
         Ok(self.keypair.public_key().to_bech32()?)
+    }
+
+    pub async fn receive_escrow_message(
+        &self,
+        receiver_pubkey: PublicKey,
+    ) -> anyhow::Result<String> {
+        let message_filter = Filter::new()
+            .kind(Kind::GiftWrap)
+            .pubkey(receiver_pubkey)
+            .limit(0);
+
+        let subscription_id = self.client.subscribe(vec![message_filter], None).await?.val;
+
+        let mut notifications = self.client.notifications();
+
+        while let Ok(notification) = notifications.recv().await {
+            if let RelayPoolNotification::Event { event, .. } = notification {
+                let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
+                if rumor.kind == Kind::PrivateDirectMessage {
+                    {
+                        self.client.unsubscribe(subscription_id.clone()).await;
+                        return Ok(rumor.content);
+                    }
+                }
+            }
+        }
+        {
+            self.client.unsubscribe(subscription_id.clone()).await;
+            Err(anyhow!("Got no valid receiver public key"))
+        }
     }
 
     // coordinator specific function?

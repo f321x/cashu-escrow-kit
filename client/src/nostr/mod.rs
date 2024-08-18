@@ -45,37 +45,13 @@ impl ClientNostrInstance {
     // the escrow service is confirmed by the coordinator
     pub async fn receive_registration_message(
         &self,
-        receiver_pk: &PublicKey,
+        receiver_pk: PublicKey,
     ) -> anyhow::Result<EscrowRegistration> {
-        let filter_note = Filter::new()
-            .kind(Kind::GiftWrap)
-            .pubkey(*receiver_pk)
-            .limit(0);
-
-        let subscription_id = self
+        let message = self
             .nostr_client
-            .client
-            .subscribe(vec![filter_note], None)
-            .await?
-            .val;
-
-        let mut notifications = self.nostr_client.client.notifications();
-
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
-                {
-                    if let Ok(escrow_registration) =
-                        serde_json::from_str(&unwrapped_gift.rumor.content)
-                    {
-                        debug!("Received escrow registration: {:?}", &escrow_registration);
-                        self.nostr_client.client.unsubscribe(subscription_id).await;
-                        return Ok(escrow_registration);
-                    }
-                }
-            }
-        }
-        Err(anyhow!("No valid escrow coordinator public key received"))
+            .receive_escrow_message(receiver_pk)
+            .await?;
+        Ok(serde_json::from_str(&message)?)
     }
 
     pub async fn submit_trade_token_to_seller(
@@ -93,37 +69,12 @@ impl ClientNostrInstance {
         &self,
         wallet: &ClientEcashWallet,
         contract: &TradeContract,
-        metadata: &EscrowRegistration,
+        registration: &EscrowRegistration,
     ) -> anyhow::Result<cdk::nuts::Token> {
-        let filter_note = Filter::new()
-            .kind(Kind::GiftWrap)
-            .pubkey(contract.npubkey_seller)
-            .limit(0);
-
-        let subscription_id = self
+        let message = self
             .nostr_client
-            .client
-            .subscribe(vec![filter_note], None)
-            .await?
-            .val;
-
-        let mut notifications = self.nostr_client.client.notifications();
-
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
-                {
-                    let escrow_token = &unwrapped_gift.rumor.content;
-                    if let Ok(escrow_token) =
-                        wallet.validate_escrow_token(escrow_token, contract, metadata)
-                    {
-                        debug!("Received token event: {:?}", escrow_token);
-                        self.nostr_client.client.unsubscribe(subscription_id).await;
-                        return Ok(escrow_token);
-                    }
-                }
-            }
-        }
-        Err(anyhow!("No valid escrow token received"))
+            .receive_escrow_message(contract.npubkey_buyer)
+            .await?;
+        wallet.validate_escrow_token(&message, contract, registration)
     }
 }
