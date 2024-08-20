@@ -1,4 +1,6 @@
+use anyhow::Result;
 use cashu_escrow_common::model::EscrowRegistration;
+use cdk::nuts::Token;
 use nostr_sdk::PublicKey;
 
 use super::*;
@@ -14,7 +16,7 @@ pub struct ClientNostrInstance {
 }
 
 impl ClientNostrInstance {
-    pub async fn from_client_cli_input(cli_input: &ClientCliInput) -> anyhow::Result<Self> {
+    pub async fn from_client_cli_input(cli_input: &ClientCliInput) -> Result<Self> {
         let nostr_client = NostrClient::new(
             &cli_input
                 .trader_nostr_keys
@@ -33,7 +35,7 @@ impl ClientNostrInstance {
         &self,
         contract: &TradeContract,
         coordinator_pk: &PublicKey,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         let coordinator_pk_bech32 = coordinator_pk.to_bech32()?;
         self.nostr_client
             .send_trade_contract(contract, &coordinator_pk_bech32)
@@ -46,10 +48,10 @@ impl ClientNostrInstance {
     pub async fn receive_registration_message(
         &self,
         receiver_pk: PublicKey,
-    ) -> anyhow::Result<EscrowRegistration> {
+    ) -> Result<EscrowRegistration> {
         let message = self
             .nostr_client
-            .receive_escrow_message(receiver_pk)
+            .receive_escrow_message(receiver_pk, 10)
             .await?;
         Ok(serde_json::from_str(&message)?)
     }
@@ -58,7 +60,7 @@ impl ClientNostrInstance {
         &self,
         seller_npubkey: PublicKey,
         token: &str,
-    ) -> anyhow::Result<()> {
+    ) -> Result<()> {
         self.nostr_client
             .send_trade_token_to_seller(seller_npubkey, token)
             .await?;
@@ -70,10 +72,10 @@ impl ClientNostrInstance {
         wallet: &ClientEcashWallet,
         contract: &TradeContract,
         registration: &EscrowRegistration,
-    ) -> anyhow::Result<cdk::nuts::Token> {
+    ) -> Result<Token> {
         let message = self
             .nostr_client
-            .receive_escrow_message(contract.npubkey_buyer)
+            .receive_escrow_message(contract.npubkey_buyer, 10)
             .await?;
         wallet.validate_escrow_token(&message, contract, registration)
     }

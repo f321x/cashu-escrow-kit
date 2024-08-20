@@ -1,6 +1,9 @@
+use std::time::Duration;
+
 use crate::model::{EscrowRegistration, TradeContract};
 use anyhow::anyhow;
 use nostr_sdk::prelude::*;
+use tokio::time::timeout;
 
 pub struct NostrClient {
     keypair: Keys,
@@ -34,6 +37,7 @@ impl NostrClient {
     pub async fn receive_escrow_message(
         &self,
         receiver_pubkey: PublicKey,
+        timeout_secs: u64,
     ) -> anyhow::Result<String> {
         let message_filter = Filter::new()
             .kind(Kind::GiftWrap)
@@ -44,21 +48,25 @@ impl NostrClient {
 
         let mut notifications = self.client.notifications();
 
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
-                if rumor.kind == Kind::PrivateDirectMessage {
-                    {
-                        self.client.unsubscribe(subscription_id.clone()).await;
-                        return Ok(rumor.content);
+        let loop_future = async {
+            loop {
+                if let Ok(notification) = notifications.recv().await {
+                    if let RelayPoolNotification::Event { event, .. } = notification {
+                        let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
+                        if rumor.kind == Kind::PrivateDirectMessage {
+                            break Ok(rumor.content) as anyhow::Result<String>;
+                        }
                     }
                 }
             }
-        }
-        {
-            self.client.unsubscribe(subscription_id.clone()).await;
-            Err(anyhow!("Got no valid receiver public key"))
-        }
+        };
+        let result = match timeout(Duration::from_secs(timeout_secs), loop_future).await {
+            Ok(result) => result,
+            Err(e) => Err(anyhow!("Timeout, {}", e)),
+        };
+        self.client.unsubscribe(subscription_id.clone()).await;
+
+        result
     }
 
     // coordinator specific function?
