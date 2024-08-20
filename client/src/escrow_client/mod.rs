@@ -48,7 +48,7 @@ impl EscrowClient {
             .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
             .await?;
 
-        let my_pubkey = self.nostr_instance.nostr_client.public_key();
+        let my_pubkey = self.nostr_instance.public_key();
         let escrow_registration = self
             .nostr_instance
             .receive_registration_message(my_pubkey)
