@@ -6,15 +6,13 @@ use nostr_sdk::prelude::*;
 use tokio::time::timeout;
 
 pub struct NostrClient {
-    keypair: Keys,
+    keys: Keys,
     pub client: Client,
 }
 
 impl NostrClient {
-    pub async fn new(nsec: &String) -> anyhow::Result<Self> {
-        let keypair = Keys::parse(nsec)?;
-
-        let client = Client::new(&keypair);
+    pub async fn new(keys: Keys) -> anyhow::Result<Self> {
+        let client = Client::new(&keys);
 
         client.add_relay("wss://relay.damus.io").await?;
         client.add_relay("wss://relay.primal.net").await?;
@@ -27,11 +25,11 @@ impl NostrClient {
 
         // Connect to relays
         client.connect().await;
-        Ok(Self { keypair, client })
+        Ok(Self { keys, client })
     }
 
     pub fn public_key(&self) -> PublicKey {
-        self.keypair.public_key()
+        self.keys.public_key()
     }
 
     pub async fn receive_escrow_message(
