@@ -30,8 +30,8 @@ impl NostrClient {
         Ok(Self { keypair, client })
     }
 
-    pub fn get_npub(&self) -> anyhow::Result<String> {
-        Ok(self.keypair.public_key().to_bech32()?)
+    pub fn public_key(&self) -> PublicKey {
+        self.keypair.public_key()
     }
 
     pub async fn receive_escrow_message(
