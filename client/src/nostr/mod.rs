@@ -12,7 +12,7 @@ use super::*;
 // As they are only used by the client.
 
 pub struct ClientNostrInstance {
-    pub nostr_client: NostrClient,
+    nostr_client: NostrClient,
 }
 
 impl ClientNostrInstance {
@@ -71,5 +71,9 @@ impl ClientNostrInstance {
             .receive_escrow_message(contract.npubkey_buyer, 10)
             .await?;
         wallet.validate_escrow_token(&message, contract, registration)
+    }
+
+    pub(crate) fn public_key(&self) -> PublicKey {
+        self.nostr_client.public_key()
     }
 }
