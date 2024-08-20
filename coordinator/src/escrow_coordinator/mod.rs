@@ -30,7 +30,7 @@ impl EscrowCoordinator {
     }
 
     pub async fn run(&mut self) -> anyhow::Result<()> {
-        let my_pubkey = NostrPubkey::from_bech32(&self.nostr_client.get_npub()?)?;
+        let my_pubkey = self.nostr_client.public_key();
         let filter_note = Filter::new()
             .kind(Kind::GiftWrap)
             .pubkey(my_pubkey)
