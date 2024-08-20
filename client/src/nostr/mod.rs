@@ -16,15 +16,8 @@ pub struct ClientNostrInstance {
 }
 
 impl ClientNostrInstance {
-    pub async fn from_client_cli_input(cli_input: &ClientCliInput) -> Result<Self> {
-        let nostr_client = NostrClient::new(
-            &cli_input
-                .trader_nostr_keys
-                .secret_key()
-                .unwrap()
-                .to_bech32()?,
-        )
-        .await?;
+    pub async fn new(trader_keys: Keys) -> Result<Self> {
+        let nostr_client = NostrClient::new(trader_keys).await?;
         Ok(Self { nostr_client })
     }
 

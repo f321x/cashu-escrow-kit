@@ -2,7 +2,6 @@ use super::*;
 use cashu_escrow_common::model::TradeContract;
 use cdk::nuts::SecretKey as CDKSecretKey;
 use hashes::hex::DisplayHex;
-use ndk::prelude::PublicKey as NostrPubkey;
 use ndk::prelude::*;
 use ndk::{Filter, Kind, RelayPoolNotification};
 use nostr_sdk as ndk;

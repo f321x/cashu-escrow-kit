@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let cli_input = ClientCliInput::parse().await?;
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
-    let nostr_instance = ClientNostrInstance::from_client_cli_input(&cli_input).await?;
+    let nostr_instance = ClientNostrInstance::new(cli_input.trader_nostr_keys).await?;
     let mut escrow_client = EscrowClient::new(
         nostr_instance,
         escrow_wallet,
