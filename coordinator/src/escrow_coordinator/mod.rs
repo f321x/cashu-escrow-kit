@@ -41,25 +41,34 @@ impl EscrowCoordinator {
             .await?;
         let mut notifications = self.nostr_client.client.notifications();
 
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Ok(unwrapped_gift) = self.nostr_client.client.unwrap_gift_wrap(&event).await
-                {
-                    if let Ok((contract_hash, contract)) =
-                        parse_contract(&unwrapped_gift.rumor.content)
+        loop {
+            if let Ok(notification) = notifications.recv().await {
+                if let RelayPoolNotification::Event { event, .. } = notification {
+                    if let Ok(unwrapped_gift) =
+                        self.nostr_client.client.unwrap_gift_wrap(&event).await
                     {
-                        dbg!("Received contract: {}", &contract.trade_description);
-                        if self.pending_contracts.contains_key(&contract_hash) {
-                            self.pending_contracts.remove(&contract_hash);
-                            self.begin_trade(&contract_hash, &contract).await?;
-                        } else {
-                            self.pending_contracts.insert(contract_hash, contract);
+                        let rumor = unwrapped_gift.rumor;
+                        if rumor.kind == Kind::PrivateDirectMessage {
+                            if let Ok((contract_hash, contract)) = parse_contract(&rumor.content) {
+                                dbg!("Received contract: {}", &contract.trade_description);
+                                if self.pending_contracts.contains_key(&contract_hash) {
+                                    self.pending_contracts.remove(&contract_hash);
+                                    let _ = self
+                                        .begin_trade(&contract_hash, &contract)
+                                        .await
+                                        .inspect_err(|e| {
+                                            //todo: use logger instead
+                                            println!("Got error while beginning a trade: {}", e);
+                                        });
+                                } else {
+                                    self.pending_contracts.insert(contract_hash, contract);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        Ok(())
     }
 
     async fn begin_trade(
