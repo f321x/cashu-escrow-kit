@@ -1,4 +1,5 @@
 use super::*;
+use anyhow::anyhow;
 use cashu_escrow_common::model::TradeContract;
 use cdk::nuts::SecretKey as CDKSecretKey;
 use hashes::hex::DisplayHex;
@@ -66,6 +67,10 @@ impl EscrowCoordinator {
                             }
                         }
                     }
+                } else if RelayPoolNotification::Shutdown == notification {
+                    break Err(anyhow!(
+                        "Got shutdown notification, breaking coordinator lopp!"
+                    ));
                 }
             }
         }
