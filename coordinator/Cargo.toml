@@ -18,7 +18,3 @@ sha2 = "0.10.8"
 
 cashu_escrow_common = { path = "../common" }
 
-[profile.release]
-lto = true
-opt-level = 3
-strip = true
