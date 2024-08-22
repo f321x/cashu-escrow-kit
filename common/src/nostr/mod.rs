@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::model::{EscrowRegistration, TradeContract};
+use crate::model::EscrowRegistration;
 use anyhow::anyhow;
 use nostr_sdk::prelude::*;
 use tokio::time::timeout;
@@ -85,36 +85,6 @@ impl NostrClient {
             .await?;
         self.client
             .send_private_msg(receivers.1, &registration_json, None)
-            .await?;
-        Ok(())
-    }
-
-    // client specific function?
-    pub async fn send_trade_contract(
-        &self,
-        contract: &TradeContract,
-        coordinator_pk_bech32: &str,
-    ) -> anyhow::Result<()> {
-        let message = serde_json::to_string(contract)?;
-        dbg!("sending contract to coordinator...");
-        self.client
-            .send_private_msg(
-                PublicKey::from_bech32(coordinator_pk_bech32)?,
-                &message,
-                None,
-            )
-            .await?;
-        Ok(())
-    }
-
-    // client specific function?
-    pub async fn send_trade_token_to_seller(
-        &self,
-        seller_npubkey: PublicKey,
-        token: &str,
-    ) -> anyhow::Result<()> {
-        self.client
-            .send_private_msg(seller_npubkey, token, None)
             .await?;
         Ok(())
     }

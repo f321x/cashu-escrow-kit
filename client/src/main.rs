@@ -1,7 +1,6 @@
 mod cli;
 mod ecash;
 mod escrow_client;
-mod nostr;
 
 use std::env;
 
@@ -15,7 +14,6 @@ use dotenv::dotenv;
 use ecash::ClientEcashWallet;
 use escrow_client::*;
 use log::{debug, info};
-use nostr::ClientNostrInstance;
 use nostr_sdk::prelude::*;
 
 #[tokio::main]
@@ -34,13 +32,9 @@ async fn main() -> anyhow::Result<()> {
     let cli_input = ClientCliInput::parse().await?;
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
-    let nostr_instance = ClientNostrInstance::new(cli_input.trader_nostr_keys).await?;
-    let mut escrow_client = EscrowClient::new(
-        nostr_instance,
-        escrow_wallet,
-        escrow_contract,
-        cli_input.mode,
-    );
+    let nostr_client = NostrClient::new(cli_input.trader_nostr_keys).await?;
+    let mut escrow_client =
+        EscrowClient::new(nostr_client, escrow_wallet, escrow_contract, cli_input.mode);
 
     escrow_client.register_trade().await?;
     debug!("Common trade registration completed");
