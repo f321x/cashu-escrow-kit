@@ -17,5 +17,5 @@ async fn main() -> anyhow::Result<()> {
         nostr_client.public_key().to_bech32()?
     );
     println!("Starting service and waiting for trades...");
-    return EscrowCoordinator::setup(nostr_client).await?.run().await;
+    return EscrowCoordinator::new(nostr_client)?.run().await;
 }

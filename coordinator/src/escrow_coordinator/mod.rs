@@ -22,7 +22,7 @@ struct ActiveTade {
 }
 
 impl EscrowCoordinator {
-    pub async fn setup(nostr_client: NostrClient) -> anyhow::Result<Self> {
+    pub fn new(nostr_client: NostrClient) -> anyhow::Result<Self> {
         Ok(Self {
             nostr_client,
             pending_contracts: HashMap::new(),
@@ -53,7 +53,7 @@ impl EscrowCoordinator {
                             let rumor = unwrapped_gift.rumor;
                             if rumor.kind == Kind::PrivateDirectMessage {
                                 if let Ok((contract_hash, contract)) =
-                                    parse_contract(&rumor.content)
+                                    EscrowCoordinator::parse_contract(&rumor.content)
                                 {
                                     dbg!("Received contract: {}", &contract.trade_description);
                                     if self.pending_contracts.contains_key(&contract_hash) {
@@ -119,16 +119,16 @@ impl EscrowCoordinator {
             .await?;
         Ok(())
     }
-}
 
-fn parse_contract(content: &str) -> anyhow::Result<([u8; 32], TradeContract)> {
-    let contract: TradeContract = serde_json::from_str(content)?;
+    fn parse_contract(content: &str) -> anyhow::Result<([u8; 32], TradeContract)> {
+        let contract: TradeContract = serde_json::from_str(content)?;
 
-    // create a Sha256 object
-    let mut hasher = Sha256::new();
-    // write input message
-    hasher.update(content.as_bytes());
-    // read hash digest and consume hasher
-    let trade_hash: [u8; 32] = hasher.finalize().into();
-    Ok((trade_hash, contract))
+        // create a Sha256 object
+        let mut hasher = Sha256::new();
+        // write input message
+        hasher.update(content.as_bytes());
+        // read hash digest and consume hasher
+        let trade_hash: [u8; 32] = hasher.finalize().into();
+        Ok((trade_hash, contract))
+    }
 }
