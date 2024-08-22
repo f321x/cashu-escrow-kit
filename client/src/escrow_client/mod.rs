@@ -10,7 +10,7 @@ pub enum TradeMode {
 }
 
 pub struct EscrowClient {
-    nostr_instance: ClientNostrInstance, // can either be a Nostr Client or Nostr note signer (without networking)
+    nostr_client: NostrClient, // can either be a Nostr Client or Nostr note signer (without networking)
     ecash_wallet: ClientEcashWallet,
     escrow_registration: Option<EscrowRegistration>,
     escrow_contract: TradeContract,
@@ -21,13 +21,13 @@ pub struct EscrowClient {
 impl EscrowClient {
     // creates the inital state: the coordinator data isn't present.
     pub fn new(
-        nostr_instance: ClientNostrInstance,
+        nostr_client: NostrClient,
         ecash_wallet: ClientEcashWallet,
         escrow_contract: TradeContract,
         trade_mode: TradeMode,
     ) -> Self {
         Self {
-            nostr_instance,
+            nostr_client,
             ecash_wallet,
             escrow_registration: None,
             escrow_contract,
@@ -42,19 +42,19 @@ impl EscrowClient {
     /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
     pub async fn register_trade(&mut self) -> anyhow::Result<()> {
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
-
-        // submits the trade contract to the coordinator to initiate the escrow service
-        self.nostr_instance
-            .submit_escrow_contract(&self.escrow_contract, coordinator_pk)
+        let message = serde_json::to_string(&self.escrow_contract)?;
+        dbg!("sending contract to coordinator...");
+        self.nostr_client
+            .client
+            .send_private_msg(*coordinator_pk, &message, None)
             .await?;
 
-        let my_pubkey = self.nostr_instance.public_key();
-        let escrow_registration = self
-            .nostr_instance
-            .receive_registration_message(my_pubkey)
+        let my_pubkey = self.nostr_client.public_key();
+        let message = self
+            .nostr_client
+            .receive_escrow_message(my_pubkey, 10)
             .await?;
-
-        self.escrow_registration = Some(escrow_registration);
+        self.escrow_registration = Some(serde_json::from_str(&message)?);
         Ok(())
     }
 
@@ -93,8 +93,9 @@ impl EscrowClient {
 
         debug!("Sending token to the seller: {}", escrow_token.as_str());
 
-        self.nostr_instance
-            .submit_trade_token_to_seller(escrow_contract.npubkey_seller, &escrow_token)
+        self.nostr_client
+            .client
+            .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
             .await?;
 
         Ok(escrow_token)
@@ -111,13 +112,11 @@ impl EscrowClient {
             .ok_or(anyhow!("Escrow registration not set, wrong state"))?;
         let wallet = &self.ecash_wallet;
 
-        let escrow_token = self
-            .nostr_instance
-            // todo: split method in receive and validate steps, single responsability principle.
-            .await_and_validate_escrow_token(wallet, escrow_contract, client_registration)
+        let message = self
+            .nostr_client
+            .receive_escrow_message(escrow_contract.npubkey_buyer, 10)
             .await?;
-
-        Ok(escrow_token)
+        wallet.validate_escrow_token(&message, escrow_contract, client_registration)
     }
 
     /// Depending on the trade mode deliver product/service or sign the token after receiving the service.
