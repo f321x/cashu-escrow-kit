@@ -5,8 +5,6 @@ mod escrow_client;
 use std::env;
 use std::sync::Arc;
 
-use anyhow::anyhow;
-use async_utility::futures_util::{FutureExt, TryFutureExt};
 use cashu_escrow_common as common;
 use cli::trade_contract::FromClientCliInput;
 use cli::ClientCliInput;
