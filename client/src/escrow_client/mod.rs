@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::common::model::EscrowRegistration;
 use cdk::nuts::Token;
 
@@ -9,27 +11,21 @@ pub enum TradeMode {
     Seller,
 }
 
-pub struct EscrowClient {
-    nostr_client: NostrClient, // can either be a Nostr Client or Nostr note signer (without networking)
+pub struct InitEscrowClient {
     ecash_wallet: ClientEcashWallet,
-    escrow_registration: Option<EscrowRegistration>,
     escrow_contract: TradeContract,
     trade_mode: TradeMode,
 }
 
-// todo: model EscrowClient as an state machine (stm). This will improve testability too.
-impl EscrowClient {
-    // creates the inital state: the coordinator data isn't present.
+/// Initial Escrow Client state.
+impl InitEscrowClient {
     pub fn new(
-        nostr_client: NostrClient,
         ecash_wallet: ClientEcashWallet,
         escrow_contract: TradeContract,
         trade_mode: TradeMode,
     ) -> Self {
         Self {
-            nostr_client,
             ecash_wallet,
-            escrow_registration: None,
             escrow_contract,
             trade_mode,
         }
@@ -40,38 +36,57 @@ impl EscrowClient {
     /// After this the coordinator data is set, state trade registered.
     ///
     /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
-    pub async fn register_trade(&mut self) -> anyhow::Result<()> {
+    pub async fn register_trade(
+        &self,
+        nostr_client: Arc<NostrClient>,
+    ) -> anyhow::Result<RegisteredEscrowClient> {
+        let my_pubkey = nostr_client.public_key();
+        let nostr_client_ref = nostr_client.clone();
+        let reg_msg_fut =
+            tokio::spawn(
+                async move { nostr_client_ref.receive_escrow_message(my_pubkey, 10).await },
+            );
+
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
-        let message = serde_json::to_string(&self.escrow_contract)?;
+        let contract_message = serde_json::to_string(&self.escrow_contract)?;
         dbg!("sending contract to coordinator...");
-        self.nostr_client
+        nostr_client
             .client
-            .send_private_msg(*coordinator_pk, &message, None)
+            .send_private_msg(*coordinator_pk, &contract_message, None)
             .await?;
 
-        let my_pubkey = self.nostr_client.public_key();
-        let message = self
-            .nostr_client
-            .receive_escrow_message(my_pubkey, 10)
-            .await?;
-        self.escrow_registration = Some(serde_json::from_str(&message)?);
-        Ok(())
+        let registration_message = reg_msg_fut.await??;
+        let escrow_registration = serde_json::from_str(&registration_message)?;
+        Ok(RegisteredEscrowClient {
+            prev_state: self,
+            escrow_registration,
+        })
     }
+}
 
+pub struct RegisteredEscrowClient<'a> {
+    prev_state: &'a InitEscrowClient,
+    escrow_registration: EscrowRegistration,
+}
+
+impl<'a> RegisteredEscrowClient<'a> {
     /// Depending on the trade mode sends or receives the trade token.
     ///
     /// After this the state is token sent or received.
-    pub async fn exchange_trade_token(&self) -> std::result::Result<(), anyhow::Error> {
-        match self.trade_mode {
+    pub async fn exchange_trade_token(
+        &self,
+        nostr_client: &NostrClient,
+    ) -> anyhow::Result<TokenExchangedEscrowClient> {
+        match self.prev_state.trade_mode {
             TradeMode::Buyer => {
-                // todo: store the sent token in this instance
-                self.send_trade_token().await?;
-                Ok(())
+                // todo: store the sent token in next instance
+                self.send_trade_token(nostr_client).await?;
+                Ok(TokenExchangedEscrowClient { _prev_state: self })
             }
             TradeMode::Seller => {
-                // todo: store the received token in this instance
-                self.receive_and_validate_trade_token().await?;
-                Ok(())
+                // todo: store the received token in next instance
+                self.receive_and_validate_trade_token(nostr_client).await?;
+                Ok(TokenExchangedEscrowClient { _prev_state: self })
             }
         }
     }
@@ -79,21 +94,17 @@ impl EscrowClient {
     /// State change for the buyer. The state after that is token sent.
     ///
     /// Returns the sent trade token by this [`EscrowClient`].
-    async fn send_trade_token(&self) -> anyhow::Result<String> {
-        let escrow_contract = &self.escrow_contract;
-        let escrow_registration = self
-            .escrow_registration
-            .as_ref()
-            .ok_or(anyhow!("Escrow registration not set, wrong state"))?;
-
+    async fn send_trade_token(&self, nostr_client: &NostrClient) -> anyhow::Result<String> {
+        let escrow_contract = &self.prev_state.escrow_contract;
         let escrow_token = self
+            .prev_state
             .ecash_wallet
-            .create_escrow_token(escrow_contract, escrow_registration)
+            .create_escrow_token(escrow_contract, &self.escrow_registration)
             .await?;
 
-        debug!("Sending token to the seller: {}", escrow_token.as_str());
+        debug!("Sending token to the seller: {}", escrow_token);
 
-        self.nostr_client
+        nostr_client
             .client
             .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
             .await?;
@@ -104,21 +115,25 @@ impl EscrowClient {
     /// State change for a seller. The state after this is token received.
     ///
     /// Returns the received trade token by this [`EscrowClient`].
-    async fn receive_and_validate_trade_token(&self) -> anyhow::Result<Token> {
-        let escrow_contract = &self.escrow_contract;
-        let client_registration = self
-            .escrow_registration
-            .as_ref()
-            .ok_or(anyhow!("Escrow registration not set, wrong state"))?;
-        let wallet = &self.ecash_wallet;
+    async fn receive_and_validate_trade_token(
+        &self,
+        nostr_client: &NostrClient,
+    ) -> anyhow::Result<Token> {
+        let escrow_contract = &self.prev_state.escrow_contract;
+        let wallet = &self.prev_state.ecash_wallet;
 
-        let message = self
-            .nostr_client
+        let message = nostr_client
             .receive_escrow_message(escrow_contract.npubkey_buyer, 10)
             .await?;
-        wallet.validate_escrow_token(&message, escrow_contract, client_registration)
+        wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
     }
+}
 
+pub struct TokenExchangedEscrowClient<'a> {
+    _prev_state: &'a RegisteredEscrowClient<'a>,
+}
+
+impl<'a> TokenExchangedEscrowClient<'a> {
     /// Depending on the trade mode deliver product/service or sign the token after receiving the service.
     ///
     /// The state after this operation is duties fulfilled.
