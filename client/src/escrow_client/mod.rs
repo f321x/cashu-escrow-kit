@@ -5,7 +5,7 @@ use cdk::nuts::Token;
 
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TradeMode {
     Buyer,
     Seller,
@@ -40,12 +40,9 @@ impl InitEscrowClient {
         &self,
         nostr_client: Arc<NostrClient>,
     ) -> anyhow::Result<RegisteredEscrowClient> {
-        let my_pubkey = nostr_client.public_key();
         let nostr_client_ref = nostr_client.clone();
         let reg_msg_fut =
-            tokio::spawn(
-                async move { nostr_client_ref.receive_escrow_message(my_pubkey, 10).await },
-            );
+            tokio::spawn(async move { nostr_client_ref.receive_escrow_message(20).await });
 
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
         let contract_message = serde_json::to_string(&self.escrow_contract)?;
@@ -108,6 +105,7 @@ impl<'a> RegisteredEscrowClient<'a> {
             .client
             .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
             .await?;
+        dbg!("Sent Token to seller");
 
         Ok(escrow_token)
     }
@@ -122,9 +120,8 @@ impl<'a> RegisteredEscrowClient<'a> {
         let escrow_contract = &self.prev_state.escrow_contract;
         let wallet = &self.prev_state.ecash_wallet;
 
-        let message = nostr_client
-            .receive_escrow_message(escrow_contract.npubkey_buyer, 10)
-            .await?;
+        let message = nostr_client.receive_escrow_message(20).await?;
+        dbg!("Received Token, vaidating it...");
         wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
     }
 }
@@ -142,6 +139,14 @@ impl<'a> TokenExchangedEscrowClient<'a> {
         // await signature or begin dispute
 
         // todo: as buyer either send signature or begin dispute
+        match self._prev_state.prev_state.trade_mode {
+            TradeMode::Buyer => {
+                dbg!("Payed invoince and waiting for delivery...");
+            }
+            TradeMode::Seller => {
+                dbg!("Got payment and proceding with delivery...");
+            }
+        }
         Ok(())
     }
 }
