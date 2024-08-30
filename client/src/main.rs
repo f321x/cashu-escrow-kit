@@ -6,6 +6,7 @@ use std::env;
 use std::sync::Arc;
 
 use cashu_escrow_common as common;
+use cdk::amount::{Amount, SplitTarget};
 use cli::trade_contract::FromClientCliInput;
 use cli::ClientCliInput;
 use common::model::TradeContract;
@@ -27,9 +28,17 @@ async fn main() -> anyhow::Result<()> {
     let mint_url = env::var("MINT_URL")?;
     let escrow_wallet = ClientEcashWallet::new(&mint_url).await?;
 
-    //todo: Ensure to have enough funds in the wallet. The buyer must probably transfer some ecash to the escrow wallet.
-
     let cli_input = ClientCliInput::parse().await?;
+
+    //Ensure to have enough funds in the wallet.
+    if cli_input.mode == TradeMode::Buyer {
+        let mint_quote = escrow_wallet.wallet.mint_quote(Amount::from(5000)).await?;
+        escrow_wallet
+            .wallet
+            .mint(&mint_quote.id, SplitTarget::None, None)
+            .await?;
+    }
+
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
     let nostr_client = NostrClient::new(cli_input.trader_nostr_keys).await?;

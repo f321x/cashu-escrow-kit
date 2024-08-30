@@ -32,14 +32,10 @@ impl NostrClient {
         self.keys.public_key()
     }
 
-    pub async fn receive_escrow_message(
-        &self,
-        receiver_pubkey: PublicKey,
-        timeout_secs: u64,
-    ) -> anyhow::Result<String> {
+    pub async fn receive_escrow_message(&self, timeout_secs: u64) -> anyhow::Result<String> {
         let message_filter = Filter::new()
             .kind(Kind::GiftWrap)
-            .pubkey(receiver_pubkey)
+            .pubkey(self.keys.public_key())
             .limit(0);
 
         let subscription_id = self.client.subscribe(vec![message_filter], None).await?.val;
