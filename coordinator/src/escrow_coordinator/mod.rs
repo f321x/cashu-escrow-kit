@@ -76,13 +76,13 @@ impl EscrowCoordinator {
                         }
                     } else if RelayPoolNotification::Shutdown == notification {
                         break Err(anyhow!(
-                            "Got shutdown notification, breaking coordinator lopp!"
+                            "Got shutdown notification, breaking coordinator loop!"
                         ));
                     }
                 }
                 Err(RecvError::Closed) => {
                     break Err(anyhow!(
-                        "Got closed error from channel, breaking coordinator lopp!"
+                        "Got closed error from channel, breaking coordinator loop!"
                     ))
                 }
                 Err(RecvError::Lagged(count)) => {
