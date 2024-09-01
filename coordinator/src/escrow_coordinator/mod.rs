@@ -87,7 +87,7 @@ impl EscrowCoordinator {
                 }
                 Err(RecvError::Lagged(count)) => {
                     //todo: use logger instead
-                    println!("Lost {} events, resuming after that...", count);
+                    eprintln!("Lost {} events, resuming after that...", count);
                 }
             }
         }
