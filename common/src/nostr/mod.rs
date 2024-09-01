@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::model::EscrowRegistration;
 use anyhow::anyhow;
+use bitcoin::absolute::Time;
 use nostr_sdk::prelude::*;
 use tokio::time::timeout;
 
@@ -36,7 +37,8 @@ impl NostrClient {
         let message_filter = Filter::new()
             .kind(Kind::GiftWrap)
             .pubkey(self.keys.public_key())
-            .limit(0);
+            .since(Timestamp::now() - Duration::from_secs(172900))
+            .limit(20);
 
         let subscription_id = self.client.subscribe(vec![message_filter], None).await?.val;
 
@@ -47,7 +49,9 @@ impl NostrClient {
                 if let Ok(notification) = notifications.recv().await {
                     if let RelayPoolNotification::Event { event, .. } = notification {
                         let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
-                        if rumor.kind == Kind::PrivateDirectMessage {
+                        if rumor.kind == Kind::PrivateDirectMessage
+                            && rumor.created_at > Time::now() - Duration::from_secs(120)
+                        {
                             break Ok(rumor.content) as anyhow::Result<String>;
                         }
                     }

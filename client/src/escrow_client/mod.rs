@@ -40,10 +40,6 @@ impl InitEscrowClient {
         &self,
         nostr_client: Arc<NostrClient>,
     ) -> anyhow::Result<RegisteredEscrowClient> {
-        let nostr_client_ref = nostr_client.clone();
-        let reg_msg_fut =
-            tokio::spawn(async move { nostr_client_ref.receive_escrow_message(20).await });
-
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
         let contract_message = serde_json::to_string(&self.escrow_contract)?;
         dbg!("sending contract to coordinator...");
@@ -52,7 +48,7 @@ impl InitEscrowClient {
             .send_private_msg(*coordinator_pk, &contract_message, None)
             .await?;
 
-        let registration_message = reg_msg_fut.await??;
+        let registration_message = nostr_client.receive_escrow_message(20).await?;
         let escrow_registration = serde_json::from_str(&registration_message)?;
         Ok(RegisteredEscrowClient {
             prev_state: self,
