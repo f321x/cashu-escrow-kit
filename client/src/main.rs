@@ -40,11 +40,12 @@ async fn main() -> anyhow::Result<()> {
 
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
-    let mut nostr_client = NostrClient::new(cli_input.trader_nostr_keys).await?;
-    InitEscrowClient::new(escrow_wallet, escrow_contract, cli_input.mode)
-        .register_trade(&mut nostr_client)
+    let nostr_client = NostrClient::new(cli_input.trader_nostr_keys).await?;
+
+    InitEscrowClient::new(nostr_client, escrow_wallet, escrow_contract, cli_input.mode)
+        .register_trade()
         .await?
-        .exchange_trade_token(&mut nostr_client)
+        .exchange_trade_token()
         .await?
         .do_your_trade_duties()
         .await?;
