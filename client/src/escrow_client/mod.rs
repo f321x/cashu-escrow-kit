@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::common::model::EscrowRegistration;
 use cdk::nuts::Token;
 
@@ -38,12 +36,8 @@ impl InitEscrowClient {
     /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
     pub async fn register_trade(
         &self,
-        nostr_client: Arc<NostrClient>,
+        nostr_client: &mut NostrClient,
     ) -> anyhow::Result<RegisteredEscrowClient> {
-        let nostr_client_ref = nostr_client.clone();
-        let reg_msg_fut =
-            tokio::spawn(async move { nostr_client_ref.receive_escrow_message(20).await });
-
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
         let contract_message = serde_json::to_string(&self.escrow_contract)?;
         dbg!("sending contract to coordinator...");
@@ -52,8 +46,12 @@ impl InitEscrowClient {
             .send_private_msg(*coordinator_pk, &contract_message, None)
             .await?;
 
-        let registration_message = reg_msg_fut.await??;
-        let escrow_registration = serde_json::from_str(&registration_message)?;
+        let registration_message = nostr_client.receive_escrow_message(200).await?;
+        let escrow_registration: EscrowRegistration = serde_json::from_str(&registration_message)?;
+        dbg!(
+            "Received registration: {}",
+            &escrow_registration.escrow_id_hex
+        );
         Ok(RegisteredEscrowClient {
             prev_state: self,
             escrow_registration,
@@ -72,7 +70,7 @@ impl<'a> RegisteredEscrowClient<'a> {
     /// After this the state is token sent or received.
     pub async fn exchange_trade_token(
         &self,
-        nostr_client: &NostrClient,
+        nostr_client: &mut NostrClient,
     ) -> anyhow::Result<TokenExchangedEscrowClient> {
         match self.prev_state.trade_mode {
             TradeMode::Buyer => {
@@ -115,7 +113,7 @@ impl<'a> RegisteredEscrowClient<'a> {
     /// Returns the received trade token by this [`EscrowClient`].
     async fn receive_and_validate_trade_token(
         &self,
-        nostr_client: &NostrClient,
+        nostr_client: &mut NostrClient,
     ) -> anyhow::Result<Token> {
         let escrow_contract = &self.prev_state.escrow_contract;
         let wallet = &self.prev_state.ecash_wallet;
