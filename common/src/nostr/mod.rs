@@ -3,11 +3,13 @@ use std::time::Duration;
 use crate::model::EscrowRegistration;
 use anyhow::anyhow;
 use nostr_sdk::prelude::*;
-use tokio::time::timeout;
+use tokio::{sync::broadcast::Receiver, time::timeout};
 
 pub struct NostrClient {
     keys: Keys,
     pub client: Client,
+    _subscription_id: SubscriptionId,
+    notifications_receiver: Receiver<RelayPoolNotification>,
 }
 
 impl NostrClient {
@@ -25,26 +27,31 @@ impl NostrClient {
 
         // Connect to relays
         client.connect().await;
-        Ok(Self { keys, client })
+
+        let message_filter = Filter::new()
+            .kind(Kind::GiftWrap)
+            .pubkey(keys.public_key())
+            .limit(0);
+
+        let _subscription_id = client.subscribe(vec![message_filter], None).await?.val;
+        let notifications_receiver = client.notifications();
+
+        Ok(Self {
+            keys,
+            client,
+            _subscription_id,
+            notifications_receiver,
+        })
     }
 
     pub fn public_key(&self) -> PublicKey {
         self.keys.public_key()
     }
 
-    pub async fn receive_escrow_message(&self, timeout_secs: u64) -> anyhow::Result<String> {
-        let message_filter = Filter::new()
-            .kind(Kind::GiftWrap)
-            .pubkey(self.keys.public_key())
-            .limit(0);
-
-        let subscription_id = self.client.subscribe(vec![message_filter], None).await?.val;
-
-        let mut notifications = self.client.notifications();
-
+    pub async fn receive_escrow_message(&mut self, timeout_secs: u64) -> anyhow::Result<String> {
         let loop_future = async {
             loop {
-                if let Ok(notification) = notifications.recv().await {
+                if let Ok(notification) = self.notifications_receiver.recv().await {
                     if let RelayPoolNotification::Event { event, .. } = notification {
                         let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
                         if rumor.kind == Kind::PrivateDirectMessage {
@@ -52,13 +59,13 @@ impl NostrClient {
                         }
                     }
                 }
+                //todo: in case of RecvErr::Close reset the subscription
             }
         };
         let result = match timeout(Duration::from_secs(timeout_secs), loop_future).await {
             Ok(result) => result,
             Err(e) => Err(anyhow!("Timeout, {}", e)),
         };
-        self.client.unsubscribe(subscription_id.clone()).await;
 
         result
     }
