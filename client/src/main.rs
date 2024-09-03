@@ -13,14 +13,15 @@ use common::{cli::get_user_input, nostr::NostrClient};
 use dotenv::dotenv;
 use ecash::ClientEcashWallet;
 use escrow_client::*;
-use log::{debug, info};
+#[allow(unused_imports)]
+use log::{debug, error, info, trace, warn};
 use nostr_sdk::prelude::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::builder()
-        .filter_module("client", log::LevelFilter::Debug) // logging level of the client
+        .filter_module("client", log::LevelFilter::Trace) // logging level of the client
         .filter_level(log::LevelFilter::Info) // logging level of all other crates
         .init();
 

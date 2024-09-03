@@ -18,4 +18,5 @@ sha2 = "0.10.8"
 
 cashu_escrow_common = { path = "../common" }
 env_logger = "0.11.5"
+log = "0.4.22"
 
