@@ -1,16 +1,23 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct TradeContract {
-    pub trade_description: String,
-    pub trade_mint_url: String,
-    pub trade_amount_sat: u64,
-    pub npub_seller: String,
-    pub npub_buyer: String,
-    pub time_limit: u64,
-    pub seller_ecash_public_key: String,
-    pub buyer_ecash_public_key: String,
-}
-
 pub mod cli;
+pub mod model;
 pub mod nostr;
+
+mod cdk_pubkey_serde {
+    use cdk::nuts::PublicKey;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    pub fn serialize<S>(pk: &PublicKey, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&pk.to_hex())
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<PublicKey, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let pubkey_hex = String::deserialize(deserializer)?;
+        PublicKey::from_hex(pubkey_hex).map_err(serde::de::Error::custom)
+    }
+}
