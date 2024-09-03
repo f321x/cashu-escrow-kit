@@ -1,155 +1,162 @@
+use crate::common::model::EscrowRegistration;
+use cdk::nuts::Token;
+
 use super::*;
-use cashu_escrow_common::nostr::PubkeyMessage;
-use cdk::nuts::PublicKey;
 
-pub enum Trader {
-    Buyer(EscrowUser),
-    Seller(EscrowUser),
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum TradeMode {
+    Buyer,
+    Seller,
 }
 
-pub struct EscrowUser {
-    pub escrow_coordinator_npub: String,
-    pub escrow_pk_ts: (PublicKey, Timestamp),
-    pub contract: TradeContract,
-    pub wallet: EcashWallet,
-    pub nostr_client: NostrClient,
+pub struct InitEscrowClient {
+    nostr_client: NostrClient,
+    ecash_wallet: ClientEcashWallet,
+    escrow_contract: TradeContract,
+    trade_mode: TradeMode,
 }
 
-impl Trader {
-    pub async fn init_trade(&self) -> anyhow::Result<()> {
-        match self {
-            Trader::Buyer(config) => {
-                self.buyer_pipeline(config).await?;
-                Ok(())
-            }
-            Trader::Seller(config) => {
-                self.seller_pipeline(config).await?;
-                Ok(())
-            }
-        }
-    }
-
-    async fn buyer_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
-        let token = config.wallet.create_escrow_token(config).await?;
-        dbg!("Sending token to the seller: {}", token.as_str());
-
-        config
-            .nostr_client
-            .submit_trade_token_to_seller(&config.contract.npub_seller, &token)
-            .await?;
-
-        // either send signature or begin dispute
-        Ok(())
-    }
-
-    async fn seller_pipeline(&self, config: &EscrowUser) -> anyhow::Result<()> {
-        let escrow_token = config.await_and_validate_trade_token().await?;
-
-        // send product and proof of delivery (oracle) to seller
-
-        // await signature or begin dispute
-        Ok(())
-    }
-}
-
-impl EscrowUser {
-    pub async fn new(
-        contract: TradeContract,
-        wallet: EcashWallet,
+/// Initial Escrow Client state.
+impl InitEscrowClient {
+    pub fn new(
         nostr_client: NostrClient,
-        escrow_coordinator_npub: String,
-    ) -> anyhow::Result<Self> {
-        let escrow_pk_ts =
-            Self::common_flow(&contract, &escrow_coordinator_npub, &nostr_client).await?;
-
-        Ok(Self {
-            escrow_coordinator_npub,
-            escrow_pk_ts,
-            contract,
-            wallet,
+        ecash_wallet: ClientEcashWallet,
+        escrow_contract: TradeContract,
+        trade_mode: TradeMode,
+    ) -> Self {
+        Self {
             nostr_client,
-        })
-    }
-
-    async fn common_flow(
-        contract: &TradeContract,
-        escrow_coordinator_npub: &String,
-        nostr_client: &NostrClient,
-    ) -> anyhow::Result<(PublicKey, Timestamp)> {
-        nostr_client
-            .send_escrow_contract(contract, escrow_coordinator_npub)
-            .await?;
-
-        let escrow_coordinator_pk =
-            Self::receive_escrow_coordinator_pk(nostr_client, escrow_coordinator_npub).await?;
-        Ok(escrow_coordinator_pk)
-    }
-
-    async fn parse_escrow_pk(pk_message_json: &String) -> anyhow::Result<(PublicKey, Timestamp)> {
-        let pkm: PubkeyMessage = serde_json::from_str(pk_message_json)?;
-        let public_key = PublicKey::from_hex(pkm.escrow_coordinator_pubkey)?;
-        Ok((public_key, pkm.escrow_start_ts))
-    }
-
-    async fn receive_escrow_coordinator_pk(
-        nostr_client: &NostrClient,
-        coordinator_npub: &String,
-    ) -> anyhow::Result<(PublicKey, Timestamp)> {
-        let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
-            .since(Timestamp::now())
-            .author(nostr_sdk::PublicKey::from_bech32(coordinator_npub)?);
-        nostr_client.client.subscribe(vec![filter_note], None).await;
-
-        let mut notifications = nostr_client.client.notifications();
-
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Some(decrypted) = nostr_client
-                    .decrypt_msg(&event.content, &event.author())
-                    .await
-                {
-                    dbg!("Received event: {:?}", &decrypted);
-                    if let Ok(pk_ts) = Self::parse_escrow_pk(&decrypted).await {
-                        nostr_client.client.unsubscribe_all().await;
-                        return Ok(pk_ts);
-                    }
-                }
-            }
+            ecash_wallet,
+            escrow_contract,
+            trade_mode,
         }
-        Err(anyhow!("No valid escrow coordinator public key received"))
     }
 
-    async fn await_and_validate_trade_token(&self) -> anyhow::Result<cdk::nuts::Token> {
-        let filter_note = Filter::new()
-            .kind(Kind::EncryptedDirectMessage)
-            .since(self.escrow_pk_ts.1)
-            .author(nostr_sdk::PublicKey::from_bech32(
-                &self.contract.npub_buyer,
-            )?);
+    /// The trade initialization is the same for both buyer and seller.
+    ///
+    /// After this the coordinator data is set, state trade registered.
+    ///
+    /// After this state the trade contract is effectfull as well, possible coordinator fees must be payed.
+    pub async fn register_trade(mut self) -> anyhow::Result<RegisteredEscrowClient> {
+        let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
+        let contract_message = serde_json::to_string(&self.escrow_contract)?;
+        dbg!("sending contract to coordinator...");
         self.nostr_client
             .client
-            .subscribe(vec![filter_note], None)
-            .await;
+            .send_private_msg(*coordinator_pk, &contract_message, None)
+            .await?;
 
-        let mut notifications = self.nostr_client.client.notifications();
+        let registration_message = self.nostr_client.receive_escrow_message(20).await?;
+        let escrow_registration: EscrowRegistration = serde_json::from_str(&registration_message)?;
+        dbg!(
+            "Received registration: {}",
+            &escrow_registration.escrow_id_hex
+        );
+        Ok(RegisteredEscrowClient {
+            nostr_client: self.nostr_client,
+            ecash_wallet: self.ecash_wallet,
+            escrow_contract: self.escrow_contract,
+            trade_mode: self.trade_mode,
+            escrow_registration,
+        })
+    }
+}
 
-        while let Ok(notification) = notifications.recv().await {
-            if let RelayPoolNotification::Event { event, .. } = notification {
-                if let Some(decrypted) = self
-                    .nostr_client
-                    .decrypt_msg(&event.content, &event.author())
-                    .await
-                {
-                    dbg!("Received token event: {:?}", &decrypted);
-                    if let Ok(escrow_token) =
-                        self.wallet.validate_escrow_token(&decrypted, &self).await
-                    {
-                        return Ok(escrow_token);
-                    }
-                }
+pub struct RegisteredEscrowClient {
+    nostr_client: NostrClient,
+    ecash_wallet: ClientEcashWallet,
+    escrow_contract: TradeContract,
+    trade_mode: TradeMode,
+    escrow_registration: EscrowRegistration,
+}
+
+impl RegisteredEscrowClient {
+    /// Depending on the trade mode sends or receives the trade token.
+    ///
+    /// After this the state is token sent or received.
+    pub async fn exchange_trade_token(mut self) -> anyhow::Result<TokenExchangedEscrowClient> {
+        match self.trade_mode {
+            TradeMode::Buyer => {
+                // todo: store the sent token in next instance
+                self.send_trade_token().await?;
+                Ok(TokenExchangedEscrowClient {
+                    _nostr_client: self.nostr_client,
+                    _ecash_wallet: self.ecash_wallet,
+                    _escrow_contract: self.escrow_contract,
+                    trade_mode: self.trade_mode,
+                })
+            }
+            TradeMode::Seller => {
+                // todo: store the received token in next instance
+                self.receive_and_validate_trade_token().await?;
+                Ok(TokenExchangedEscrowClient {
+                    _nostr_client: self.nostr_client,
+                    _ecash_wallet: self.ecash_wallet,
+                    _escrow_contract: self.escrow_contract,
+                    trade_mode: self.trade_mode,
+                })
             }
         }
-        Err(anyhow!("No valid escrow token received"))
+    }
+
+    /// State change for the buyer. The state after that is token sent.
+    ///
+    /// Returns the sent trade token by this [`EscrowClient`].
+    async fn send_trade_token(&self) -> anyhow::Result<String> {
+        let escrow_contract = &self.escrow_contract;
+        let escrow_token = self
+            .ecash_wallet
+            .create_escrow_token(escrow_contract, &self.escrow_registration)
+            .await?;
+
+        debug!("Sending token to the seller: {}", escrow_token);
+
+        self.nostr_client
+            .client
+            .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
+            .await?;
+        dbg!("Sent Token to seller");
+
+        Ok(escrow_token)
+    }
+
+    /// State change for a seller. The state after this is token received.
+    ///
+    /// Returns the received trade token by this [`EscrowClient`].
+    async fn receive_and_validate_trade_token(&mut self) -> anyhow::Result<Token> {
+        let escrow_contract = &self.escrow_contract;
+        let wallet = &self.ecash_wallet;
+
+        let message = self.nostr_client.receive_escrow_message(20).await?;
+        dbg!("Received Token, vaidating it...");
+        wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
+    }
+}
+
+pub struct TokenExchangedEscrowClient {
+    _nostr_client: NostrClient,
+    _ecash_wallet: ClientEcashWallet,
+    _escrow_contract: TradeContract,
+    trade_mode: TradeMode,
+}
+
+impl TokenExchangedEscrowClient {
+    /// Depending on the trade mode deliver product/service or sign the token after receiving the service.
+    ///
+    /// The state after this operation is duties fulfilled.
+    pub async fn do_your_trade_duties(&self) -> anyhow::Result<()> {
+        // todo: as seller send product and proof of delivery (oracle) to seller.
+        // await signature or begin dispute
+
+        // todo: as buyer either send signature or begin dispute
+        match self.trade_mode {
+            TradeMode::Buyer => {
+                dbg!("Payed invoince and waiting for delivery...");
+            }
+            TradeMode::Seller => {
+                dbg!("Got payment and proceding with delivery...");
+            }
+        }
+        Ok(())
     }
 }

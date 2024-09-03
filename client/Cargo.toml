@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nostr-sdk = { version = "0.32.0", features = ["nip04"] }
+nostr-sdk = { version = "0.34.0", features = [] }
 cdk = "0.1.1"
 dotenv = "0.15.0"
 anyhow = "1.0.86"
@@ -17,3 +17,5 @@ serde_json = "1.0.117"
 sha2 = "0.10.8"
 
 cashu_escrow_common = { path = "../common" }
+log = "0.4.22"
+env_logger = "0.11.3"
