@@ -154,7 +154,7 @@ impl TokenExchangedEscrowClient {
                 trace!("Payed invoince and waiting for delivery...");
             }
             TradeMode::Seller => {
-                trace!("Got payment and proceding with delivery...");
+                trace!("Got payment and proceeding with delivery...");
             }
         }
         Ok(())
