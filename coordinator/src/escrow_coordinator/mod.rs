@@ -55,18 +55,14 @@ impl EscrowCoordinator {
                                 if let Ok((contract_hash, contract)) =
                                     EscrowCoordinator::parse_contract(&rumor.content)
                                 {
-                                    dbg!("Received contract: {}", &contract.trade_description);
+                                    debug!("Received contract: {}", &contract.trade_description);
                                     if self.pending_contracts.contains_key(&contract_hash) {
                                         self.pending_contracts.remove(&contract_hash);
                                         let _ = self
                                             .begin_trade(&contract_hash, &contract)
                                             .await
                                             .inspect_err(|e| {
-                                                //todo: use logger instead
-                                                println!(
-                                                    "Got error while beginning a trade: {}",
-                                                    e
-                                                );
+                                                error!("Got error while beginning a trade: {}", e);
                                             });
                                     } else {
                                         self.pending_contracts.insert(contract_hash, contract);
@@ -86,8 +82,7 @@ impl EscrowCoordinator {
                     ))
                 }
                 Err(RecvError::Lagged(count)) => {
-                    //todo: use logger instead
-                    eprintln!("Lost {} events, resuming after that...", count);
+                    warn!("Lost {} events, resuming after that...", count);
                 }
             }
         }
@@ -98,7 +93,7 @@ impl EscrowCoordinator {
         contract_hash: &[u8; 32],
         trade: &TradeContract,
     ) -> anyhow::Result<()> {
-        dbg!(
+        debug!(
             "Beginning trade: {}",
             contract_hash.to_hex_string(hashes::hex::Case::Lower)
         );
