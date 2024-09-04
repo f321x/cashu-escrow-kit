@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use crate::model::EscrowRegistration;
 use anyhow::anyhow;
+#[allow(unused_imports)]
+use log::{debug, error, info, trace, warn};
 use nostr_sdk::prelude::*;
 use tokio::{
     sync::broadcast::{error::RecvError, Receiver},
@@ -58,13 +60,13 @@ impl NostrClient {
                         }
                     }
                     Err(RecvError::Closed) => {
-                        eprintln!("Relay pool closed subscription, restarting a new one...");
+                        error!("Relay pool closed subscription, restarting a new one...");
                         self.client.unsubscribe(self.subscription_id.clone()).await;
                         (self.subscription_id, self.notifications_receiver) =
                             init_subscription(&self.keys, &self.client).await?;
                     }
                     Err(RecvError::Lagged(count)) => {
-                        dbg!("Lost {} events, proceeding after that...", count);
+                        warn!("Lost {} events, proceeding after that...", count);
                     }
                 }
             }

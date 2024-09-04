@@ -40,7 +40,7 @@ impl InitEscrowClient {
     pub async fn register_trade(mut self) -> anyhow::Result<RegisteredEscrowClient> {
         let coordinator_pk = &self.escrow_contract.npubkey_coordinator;
         let contract_message = serde_json::to_string(&self.escrow_contract)?;
-        dbg!("sending contract to coordinator...");
+        debug!("sending contract to coordinator...");
         self.nostr_client
             .client
             .send_private_msg(*coordinator_pk, &contract_message, None)
@@ -48,7 +48,7 @@ impl InitEscrowClient {
 
         let registration_message = self.nostr_client.receive_escrow_message(20).await?;
         let escrow_registration: EscrowRegistration = serde_json::from_str(&registration_message)?;
-        dbg!(
+        debug!(
             "Received registration: {}",
             &escrow_registration.escrow_id_hex
         );
@@ -115,7 +115,7 @@ impl RegisteredEscrowClient {
             .client
             .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
             .await?;
-        dbg!("Sent Token to seller");
+        trace!("Sent Token to seller");
 
         Ok(escrow_token)
     }
@@ -128,7 +128,7 @@ impl RegisteredEscrowClient {
         let wallet = &self.ecash_wallet;
 
         let message = self.nostr_client.receive_escrow_message(20).await?;
-        dbg!("Received Token, vaidating it...");
+        trace!("Received Token, validating it...");
         wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
     }
 }
@@ -151,10 +151,10 @@ impl TokenExchangedEscrowClient {
         // todo: as buyer either send signature or begin dispute
         match self.trade_mode {
             TradeMode::Buyer => {
-                dbg!("Payed invoince and waiting for delivery...");
+                trace!("Payed invoince and waiting for delivery...");
             }
             TradeMode::Seller => {
-                dbg!("Got payment and proceding with delivery...");
+                trace!("Got payment and proceeding with delivery...");
             }
         }
         Ok(())
