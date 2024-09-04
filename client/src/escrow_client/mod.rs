@@ -128,7 +128,7 @@ impl RegisteredEscrowClient {
         let wallet = &self.ecash_wallet;
 
         let message = self.nostr_client.receive_escrow_message(20).await?;
-        trace!("Received Token, vaidating it...");
+        trace!("Received Token, validating it...");
         wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
     }
 }
