@@ -1,21 +1,17 @@
 mod cli;
-mod ecash;
-mod escrow_client;
 
 use std::env;
 
-use cashu_escrow_common as common;
+use cashu_escrow_client::ecash::ClientEcashWallet;
+use cashu_escrow_client::escrow_client::{InitEscrowClient, TradeMode};
+use cashu_escrow_common::model::TradeContract;
+use cashu_escrow_common::nostr::NostrClient;
 use cdk::amount::{Amount, SplitTarget};
 use cli::trade_contract::FromClientCliInput;
 use cli::ClientCliInput;
-use common::model::TradeContract;
-use common::{cli::get_user_input, nostr::NostrClient};
 use dotenv::dotenv;
-use ecash::ClientEcashWallet;
-use escrow_client::*;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
-use nostr_sdk::prelude::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

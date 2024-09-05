@@ -1,5 +1,9 @@
 use super::*;
 
+use cashu_escrow_client::escrow_client::TradeMode;
+use cashu_escrow_common::model::TradeContract;
+use nostr_sdk::prelude::*;
+
 pub trait FromClientCliInput {
     fn from_client_cli_input(
         cli_input: &ClientCliInput,

@@ -1,11 +1,10 @@
 use super::*;
 
-use crate::common::model::EscrowRegistration;
-use cdk::nuts::PublicKey;
+use cashu_escrow_common::model::{EscrowRegistration, TradeContract};
 use cdk::{
     amount::SplitTarget,
     cdk_database::WalletMemoryDatabase,
-    nuts::{Conditions, CurrencyUnit, SecretKey, SigFlag, SpendingConditions, Token},
+    nuts::{Conditions, CurrencyUnit, PublicKey, SecretKey, SigFlag, SpendingConditions, Token},
     secp256k1::rand::Rng,
     wallet::Wallet,
 };

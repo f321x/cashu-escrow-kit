@@ -363,15 +363,11 @@ dependencies = [
  "anyhow",
  "cashu_escrow_common",
  "cdk",
- "dotenv",
- "env_logger",
  "log",
  "nostr-sdk",
  "rand",
- "serde",
  "serde_json",
  "sha2",
- "tokio",
 ]
 
 [[package]]
@@ -497,6 +493,21 @@ dependencies = [
  "crypto-common",
  "inout",
  "zeroize",
+]
+
+[[package]]
+name = "client_app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cashu_escrow_client",
+ "cashu_escrow_common",
+ "cdk",
+ "dotenv",
+ "env_logger",
+ "log",
+ "nostr-sdk",
+ "tokio",
 ]
 
 [[package]]

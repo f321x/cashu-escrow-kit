@@ -1,7 +1,11 @@
-use crate::common::model::EscrowRegistration;
-use cdk::nuts::Token;
-
 use super::*;
+
+use cashu_escrow_common::{
+    model::{EscrowRegistration, TradeContract},
+    nostr::NostrClient,
+};
+use cdk::nuts::Token;
+use ecash::ClientEcashWallet;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TradeMode {
