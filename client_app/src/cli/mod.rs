@@ -1,9 +1,13 @@
 pub mod trade_contract;
 
 use super::*;
+use cashu_escrow_client::escrow_client::TradeMode;
+use cashu_escrow_common::cli::get_user_input;
 use cdk::nuts::nut01::PublicKey as EcashPubkey;
+use nostr_sdk::prelude::*;
 use nostr_sdk::Keys as NostrKeys;
 use nostr_sdk::PublicKey as NostrPubkey;
+use std::env;
 use std::str::FromStr;
 
 #[derive(Debug)]
