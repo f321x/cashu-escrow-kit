@@ -13,7 +13,7 @@ use nostr_sdk::{Keys, ToBech32};
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::builder()
-        .filter_module("coordinator", log::LevelFilter::Trace) // level for the application itself
+        .filter_module("cashu_escrow_coordinator", log::LevelFilter::Trace) // level for the application itself
         .filter_level(log::LevelFilter::Info) // level for imported crates
         .init();
 
