@@ -2,6 +2,7 @@
 name = "client_app"
 version = "0.1.0"
 edition = "2021"
+description = "An application simulationg a user of the escrow service as driver."
 
 [dependencies]
 nostr-sdk = { version = "0.34.0", features = [] }
