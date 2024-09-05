@@ -21,7 +21,7 @@ use nostr_sdk::prelude::*;
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::builder()
-        .filter_module("client", log::LevelFilter::Trace) // logging level of the client
+        .filter_module("cashu_escrow_client", log::LevelFilter::Trace) // logging level of the client
         .filter_level(log::LevelFilter::Info) // logging level of all other crates
         .init();
 
