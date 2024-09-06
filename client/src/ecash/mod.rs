@@ -6,7 +6,7 @@ use cdk::{
     cdk_database::WalletMemoryDatabase,
     nuts::{Conditions, CurrencyUnit, PublicKey, SecretKey, SigFlag, SpendingConditions, Token},
     secp256k1::rand::Rng,
-    wallet::Wallet,
+    wallet::{SendKind, Wallet},
 };
 use std::str::FromStr;
 use std::sync::Arc;
@@ -26,7 +26,13 @@ impl ClientEcashWallet {
         let seed = rand::thread_rng().gen::<[u8; 32]>();
         info!("Trade ecash pubkey: {}", trade_pubkey);
 
-        let wallet = Wallet::new(mint_url, CurrencyUnit::Sat, Arc::new(localstore), &seed);
+        let wallet = Wallet::new(
+            mint_url,
+            CurrencyUnit::Sat,
+            Arc::new(localstore),
+            &seed,
+            None,
+        );
 
         Ok(Self {
             _secret,
@@ -36,7 +42,6 @@ impl ClientEcashWallet {
     }
 
     fn assemble_escrow_conditions(
-        &self,
         contract: &TradeContract,
         escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<SpendingConditions> {
@@ -64,8 +69,8 @@ impl ClientEcashWallet {
         &self,
         contract: &TradeContract,
         escrow_registration: &EscrowRegistration,
-    ) -> anyhow::Result<String> {
-        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_registration)?;
+    ) -> anyhow::Result<Token> {
+        let spending_conditions = Self::assemble_escrow_conditions(contract, escrow_registration)?;
         let token = self
             .wallet
             .send(
@@ -73,6 +78,8 @@ impl ClientEcashWallet {
                 Some(contract.trade_description.clone()),
                 Some(spending_conditions),
                 &SplitTarget::None,
+                &SendKind::OnlineExact,
+                true,
             )
             .await?;
         Ok(token)
@@ -80,13 +87,13 @@ impl ClientEcashWallet {
 
     pub fn validate_escrow_token(
         &self,
-        escrow_token: &str,
+        escrow_token: &Token,
         contract: &TradeContract,
         escrow_registration: &EscrowRegistration,
-    ) -> anyhow::Result<Token> {
-        let spending_conditions = self.assemble_escrow_conditions(contract, escrow_registration)?;
-        let token = Token::from_str(escrow_token)?;
-        self.wallet.verify_token_p2pk(&token, spending_conditions)?;
-        Ok(token)
+    ) -> anyhow::Result<()> {
+        let spending_conditions = Self::assemble_escrow_conditions(contract, escrow_registration)?;
+        self.wallet
+            .verify_token_p2pk(&escrow_token, spending_conditions)?;
+        Ok(())
     }
 }
