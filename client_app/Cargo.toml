@@ -6,7 +6,7 @@ description = "An application simulationg a user of the escrow service as driver
 
 [dependencies]
 nostr-sdk = { version = "0.34.0", features = [] }
-cdk = "0.1.1"
+cdk = "0.3.0"
 dotenv = "0.15.0"
 anyhow = "1.0.86"
 tokio = "1.38.0"
