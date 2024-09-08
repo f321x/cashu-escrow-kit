@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 nostr-sdk = { version = "0.34.0", features = [] }
-cdk = "0.1.1"
+cdk = "0.3.0"
 anyhow = "1.0.86"
 tokio = "1.38.0"
 serde = "1.0.203"

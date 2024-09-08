@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use super::*;
 
 use cashu_escrow_common::{
@@ -106,7 +108,7 @@ impl RegisteredEscrowClient {
     /// State change for the buyer. The state after that is token sent.
     ///
     /// Returns the sent trade token by this [`EscrowClient`].
-    async fn send_trade_token(&self) -> anyhow::Result<String> {
+    async fn send_trade_token(&self) -> anyhow::Result<Token> {
         let escrow_contract = &self.escrow_contract;
         let escrow_token = self
             .ecash_wallet
@@ -117,7 +119,11 @@ impl RegisteredEscrowClient {
 
         self.nostr_client
             .client
-            .send_private_msg(escrow_contract.npubkey_seller, &escrow_token, None)
+            .send_private_msg(
+                escrow_contract.npubkey_seller,
+                &escrow_token.to_string(),
+                None,
+            )
             .await?;
         trace!("Sent Token to seller");
 
@@ -133,7 +139,9 @@ impl RegisteredEscrowClient {
 
         let message = self.nostr_client.receive_escrow_message(20).await?;
         trace!("Received Token, validating it...");
-        wallet.validate_escrow_token(&message, escrow_contract, &self.escrow_registration)
+        let escrow_token = Token::from_str(&message)?;
+        wallet.validate_escrow_token(&escrow_token, escrow_contract, &self.escrow_registration)?;
+        Ok(escrow_token)
     }
 }
 
