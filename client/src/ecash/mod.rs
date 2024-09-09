@@ -32,7 +32,7 @@ impl ClientEcashWallet {
             Arc::new(localstore),
             &seed,
             None,
-        );
+        )?;
 
         Ok(Self {
             _secret,
