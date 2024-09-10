@@ -17,8 +17,12 @@ use log::{debug, error, info, trace, warn};
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     env_logger::builder()
-        .filter_module("cashu_escrow_client", log::LevelFilter::Trace) // logging level of the client
-        .filter_level(log::LevelFilter::Info) // logging level of all other crates
+        // logging level for the own crates
+        .filter_module("client_app", log::LevelFilter::Trace)
+        .filter_module("cashu_escrow_client", log::LevelFilter::Trace)
+        .filter_module("cashu_escrow_common", log::LevelFilter::Trace)
+        // logging level of all other crates
+        .filter_level(log::LevelFilter::Info)
         .init();
 
     let mint_url = env::var("MINT_URL")?;
