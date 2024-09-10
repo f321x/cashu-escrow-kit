@@ -54,17 +54,21 @@ impl NostrClient {
         &mut self,
         timeout_secs: u64,
     ) -> anyhow::Result<T> {
-        let msgs = self.messages_cache.clone();
-        for (idx, message) in msgs.iter().enumerate() {
-            let result = serde_json::from_str::<T>(message).map_err(|e| anyhow::Error::new(e));
-            match result {
-                Ok(_) => {
-                    self.messages_cache.remove(idx);
-                    trace!("Returning from messages cache...");
-                    return result;
+        let hit_idx_res = self
+            .messages_cache
+            .iter()
+            .enumerate()
+            .find_map(|(idx, message)| {
+                let result = serde_json::from_str::<T>(message).map_err(|e| anyhow::Error::new(e));
+                match result {
+                    Ok(_) => Some((idx, result)),
+                    _ => None,
                 }
-                _ => continue,
-            }
+            });
+        if let Some((hit_idx, result)) = hit_idx_res {
+            trace!("Returning from messages cache...");
+            self.messages_cache.remove(hit_idx);
+            return result;
         }
 
         trace!("No hit in messages cache, waiting for new messages...");
