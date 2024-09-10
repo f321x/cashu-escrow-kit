@@ -5,6 +5,7 @@ use anyhow::anyhow;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use nostr_sdk::prelude::*;
+use serde::de::DeserializeOwned;
 use tokio::{
     sync::broadcast::{error::RecvError, Receiver},
     time::timeout,
@@ -15,6 +16,7 @@ pub struct NostrClient {
     pub client: Client,
     subscription_id: SubscriptionId,
     notifications_receiver: Receiver<RelayPoolNotification>,
+    messages_cache: Vec<String>, //needed for future real life situations
 }
 
 impl NostrClient {
@@ -40,6 +42,7 @@ impl NostrClient {
             client,
             subscription_id: _subscription_id,
             notifications_receiver,
+            messages_cache: vec![],
         })
     }
 
@@ -47,7 +50,24 @@ impl NostrClient {
         self.keys.public_key()
     }
 
-    pub async fn receive_escrow_message(&mut self, timeout_secs: u64) -> anyhow::Result<String> {
+    pub async fn receive_escrow_message<T: DeserializeOwned>(
+        &mut self,
+        timeout_secs: u64,
+    ) -> anyhow::Result<T> {
+        let msgs = self.messages_cache.clone();
+        for (idx, message) in msgs.iter().enumerate() {
+            let result = serde_json::from_str::<T>(message).map_err(|e| anyhow::Error::new(e));
+            match result {
+                Ok(_) => {
+                    self.messages_cache.remove(idx);
+                    trace!("Returning from messages cache...");
+                    return result;
+                }
+                _ => continue,
+            }
+        }
+
+        trace!("No hit in messages cache, waiting for new messages...");
         let loop_future = async {
             loop {
                 match self.notifications_receiver.recv().await {
@@ -55,7 +75,16 @@ impl NostrClient {
                         if let RelayPoolNotification::Event { event, .. } = notification {
                             let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
                             if rumor.kind == Kind::PrivateDirectMessage {
-                                break Ok(rumor.content) as anyhow::Result<String>;
+                                let result = serde_json::from_str::<T>(&rumor.content)
+                                    .map_err(|e| anyhow::Error::new(e));
+                                match result {
+                                    Ok(_) => break result,
+                                    _ => {
+                                        trace!("Got an in this state unexpected escrow message, putting event in cache: {}", event.id);
+                                        self.messages_cache.push(rumor.content);
+                                        continue;
+                                    }
+                                }
                             }
                         }
                     }
