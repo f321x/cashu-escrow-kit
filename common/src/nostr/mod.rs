@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::time::Duration;
 
 use crate::model::EscrowRegistration;
