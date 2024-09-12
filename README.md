@@ -37,6 +37,9 @@ Berofe running the trader clients and the coordinator start a test mint using a 
 
 `docker run -p 3338:3338 --name nutshell -e MINT_BACKEND_BOLT11_SAT=FakeWallet -e MINT_LISTEN_HOST=0.0.0.0 -e MINT_LISTEN_PORT=3338 -e MINT_PRIVATE_KEY=TEST_PRIVATE_KEY cashubtc/nutshell:0.15.3 poetry run mint`
 
+## Running the Tests
+Currently only the common package has some tests implemented. To run them sequencially execute the script `common/run_tests.sh`. Of curse you can also run single tests as simple as `cargo test test_name`.
+
 ## Acknowledgments
 Special thanks to the following projects, without them this project wouldn't be possible:
 
