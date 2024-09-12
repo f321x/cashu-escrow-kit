@@ -22,17 +22,19 @@ pub struct NostrClient {
     messages_cache: Vec<String>, //needed for future real life situations
 }
 
+const CACHE_SIZE: usize = 10;
+
 impl NostrClient {
     pub async fn new(keys: Keys) -> anyhow::Result<Self> {
         let client = Client::new(&keys);
 
-        client.add_relay("wss://relay.damus.io").await?;
+        //client.add_relay("wss://relay.damus.io").await?;
         client.add_relay("wss://relay.primal.net").await?;
-        client.add_relay("wss://relay.nostr.band").await?;
+        //client.add_relay("wss://relay.nostr.band").await?;
         client
             .add_relay("wss://ftp.halifax.rwth-aachen.de/nostr")
             .await?;
-        client.add_relay("wss://nostr.mom").await?;
+        //client.add_relay("wss://nostr.mom").await?;
         //client.add_relay("wss://relay.nostrplebs.com").await?; (having errors)
 
         // Connect to relays
@@ -88,8 +90,13 @@ impl NostrClient {
                                     Ok(_) => break result,
                                     _ => {
                                         trace!("Got an in this state unexpected escrow message, putting event in cache: {}", event.id);
+                                        if self.messages_cache.contains(&rumor.content) {
+                                            continue;
+                                        }
+                                        if self.messages_cache.len() == CACHE_SIZE {
+                                            self.messages_cache.remove(0);
+                                        }
                                         self.messages_cache.push(rumor.content);
-                                        continue;
                                     }
                                 }
                             }

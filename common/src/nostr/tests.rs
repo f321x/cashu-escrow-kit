@@ -72,11 +72,35 @@ async fn receive_2_messages_from_cache() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tokio::test]
+async fn spam_protection() -> anyhow::Result<()> {
+    let escrow_nostr_client = create_nostr_client(ESCROW_NSEC).await;
+    let mut buyer_nostr_client = create_nostr_client(BUYER_NSEC).await;
+
+    for i in 0..CACHE_SIZE + 1 {
+        escrow_nostr_client
+            .client
+            .send_private_msg(
+                buyer_nostr_client.public_key(),
+                serde_json::to_string(&TestMessage2(i))?,
+                None,
+            )
+            .await?;
+    }
+
+    let msg_res = buyer_nostr_client
+        .receive_escrow_message::<TestMessage1>(10)
+        .await;
+    assert!(msg_res.is_err()); //Timeout
+    assert_eq!(buyer_nostr_client.messages_cache.len(), CACHE_SIZE);
+    Ok(())
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct TestMessage1(String);
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-struct TestMessage2(u32);
+struct TestMessage2(usize);
 
 async fn create_nostr_client(nsec: &str) -> NostrClient {
     let keys = Keys::from_str(nsec).unwrap();
