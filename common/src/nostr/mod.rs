@@ -29,13 +29,14 @@ impl NostrClient {
         let client = Client::new(&keys);
 
         //client.add_relay("wss://relay.damus.io").await?;
-        client.add_relay("wss://relay.primal.net").await?;
-        //client.add_relay("wss://relay.nostr.band").await?;
-        client
-            .add_relay("wss://ftp.halifax.rwth-aachen.de/nostr")
-            .await?;
+        //client.add_relay("wss://relay.primal.net").await?;
+        // client.add_relay("wss://relay.nostr.band").await?;
+        /* client
+        .add_relay("wss://ftp.halifax.rwth-aachen.de/nostr")
+        .await?; */
         //client.add_relay("wss://nostr.mom").await?;
         //client.add_relay("wss://relay.nostrplebs.com").await?; (having errors)
+        client.add_relay("ws://localhost:4736").await?;
 
         // Connect to relays
         client.connect().await;
