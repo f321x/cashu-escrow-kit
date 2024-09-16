@@ -19,7 +19,10 @@ pub struct NostrClient {
     pub client: Client,
     subscription_id: SubscriptionId,
     notifications_receiver: Receiver<RelayPoolNotification>,
-    messages_cache: Vec<String>, //needed for future real life situations
+    /// The nostr network is in general very fuzzy and makes only a few guaranties about message delivery.
+    /// Messages can be posted several times and it is better no to do assumptions about the order of the messages.
+    /// Therefore, we use a small cache of the last messages received for the case we'll need them later on.
+    messages_cache: Vec<String>,
 }
 
 const CACHE_SIZE: usize = 10;
