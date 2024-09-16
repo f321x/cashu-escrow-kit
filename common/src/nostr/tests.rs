@@ -1,16 +1,13 @@
 use super::*;
 
 use serde::{Deserialize, Serialize};
-use std::{str::FromStr, time::Duration};
-
-const BUYER_NSEC: &str = "nsec182ul8zg2jlje6gtejs4pp4y4un674esq9qmrdxn2mewynkegahgqudmhvh";
-const ESCROW_NSEC: &str = "nsec1z62pah093gfj7wzjssc24x3nczmjgy778pxwale7hwesemmzln0qc4dhhu";
+use std::time::Duration;
 
 /// Receive a message when only one mesage was sent by the escrow.
 #[tokio::test]
 async fn receive_1_message() -> anyhow::Result<()> {
-    let mut buyer_nostr_client = create_nostr_client(BUYER_NSEC).await;
-    let escrow_nostr_client = create_nostr_client(ESCROW_NSEC).await;
+    let mut buyer_nostr_client = create_nostr_client().await;
+    let escrow_nostr_client = create_nostr_client().await;
 
     let msg1 = TestMessage1("message 1".to_string());
     escrow_nostr_client
@@ -30,8 +27,8 @@ async fn receive_1_message() -> anyhow::Result<()> {
 /// Send 2 messages and then receive them in reverse order, forcing to use the cache.
 #[tokio::test]
 async fn receive_2_messages_from_cache() -> anyhow::Result<()> {
-    let mut buyer_nostr_client = create_nostr_client(BUYER_NSEC).await;
-    let escrow_nostr_client = create_nostr_client(ESCROW_NSEC).await;
+    let mut buyer_nostr_client = create_nostr_client().await;
+    let escrow_nostr_client = create_nostr_client().await;
 
     tokio::time::sleep(Duration::from_millis(50)).await; //needed to wait till the local test relay sets up both subxcriptions
 
@@ -76,8 +73,8 @@ async fn receive_2_messages_from_cache() -> anyhow::Result<()> {
 
 #[tokio::test]
 async fn spam_protection() -> anyhow::Result<()> {
-    let mut buyer_nostr_client = create_nostr_client(BUYER_NSEC).await;
-    let escrow_nostr_client = create_nostr_client(ESCROW_NSEC).await;
+    let mut buyer_nostr_client = create_nostr_client().await;
+    let escrow_nostr_client = create_nostr_client().await;
 
     for i in 0..CACHE_SIZE + 1 {
         escrow_nostr_client
@@ -104,7 +101,7 @@ struct TestMessage1(String);
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct TestMessage2(usize);
 
-async fn create_nostr_client(nsec: &str) -> NostrClient {
-    let keys = Keys::from_str(nsec).unwrap();
+async fn create_nostr_client() -> NostrClient {
+    let keys = Keys::generate();
     NostrClient::new(keys).await.unwrap()
 }
