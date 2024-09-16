@@ -33,7 +33,7 @@ To reduce unnecessary burden on relays we can aim to use ephemeral event types f
 The client could be distributed as wasm library and rust crate. There could also be a compilation flag that decides if the client gets built with nostr communication logic or only with nostr event creation logic. First would be useful for inclusion in traditional trading platforms and second would be useful for nostr based trading platforms already including relay/communication logic.
 
 ## Testing
-The current `NostrClient` code only uses an in memory local test relay, which must be started before any tests.
+The current `NostrClient` code only uses an in memory local test relay, which must be started before testing.
 
 By now we use the relay at `git@github.com:rodant/bucket.git`. To start the relay locally:
 1. Checkout the master branch from the repo above.
@@ -48,11 +48,11 @@ Before running the trader clients and the coordinator, start also a test mint us
 Alternatively you can checkout the `cachubtc/nutshell` repo from Github and run it locally, see the instructions for that in the README.md of that repo.
 
 ### Running the Unit Tests
-Currently only the common package has some tests implemented. The fact that the tests share the relay state makes it necessary to run the tests sequentially.
+Currently only the common package has some tests implemented.
 
-Thus, to run the tests:
+To run the tests:
 1. Start the local relay as explained above.
-2. Then execute the script `common/run_tests.sh`.
+2. Then execute `cargo test.sh`.
 
 Of course you can also run single tests as simple as `cargo test test_name`.
 
