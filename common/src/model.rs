@@ -2,7 +2,7 @@ use cdk::nuts::PublicKey as CDKPubkey;
 use nostr_sdk::{PublicKey as NostrPubkey, Timestamp};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct TradeContract {
     pub trade_description: String,
     pub trade_amount_sat: u64,
@@ -14,7 +14,7 @@ pub struct TradeContract {
     pub buyer_ecash_public_key: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EscrowRegistration {
     pub escrow_id_hex: String,
     #[serde(with = "crate::cdk_pubkey_serde")]

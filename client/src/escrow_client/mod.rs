@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::*;
 
 use cashu_escrow_common::{
@@ -52,8 +50,8 @@ impl InitEscrowClient {
             .send_private_msg(*coordinator_pk, &contract_message, None)
             .await?;
 
-        let registration_message = self.nostr_client.receive_escrow_message(20).await?;
-        let escrow_registration: EscrowRegistration = serde_json::from_str(&registration_message)?;
+        let escrow_registration: EscrowRegistration =
+            self.nostr_client.receive_escrow_message(20).await?;
         debug!(
             "Received registration: {}",
             &escrow_registration.escrow_id_hex
@@ -121,7 +119,7 @@ impl RegisteredEscrowClient {
             .client
             .send_private_msg(
                 escrow_contract.npubkey_seller,
-                &escrow_token.to_string(),
+                &serde_json::to_string(&escrow_token)?,
                 None,
             )
             .await?;
@@ -137,9 +135,8 @@ impl RegisteredEscrowClient {
         let escrow_contract = &self.escrow_contract;
         let wallet = &self.ecash_wallet;
 
-        let message = self.nostr_client.receive_escrow_message(20).await?;
+        let escrow_token = self.nostr_client.receive_escrow_message(20).await?;
         trace!("Received Token, validating it...");
-        let escrow_token = Token::from_str(&message)?;
         wallet.validate_escrow_token(&escrow_token, escrow_contract, &self.escrow_registration)?;
         Ok(escrow_token)
     }
