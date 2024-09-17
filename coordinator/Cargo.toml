@@ -10,13 +10,13 @@ nostr-sdk = { workspace = true, features = [] }
 cdk = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
-dotenv = "0.15.0"
-tokio = "1.38.0"
-rand = "0.8.5"
-serde = "1.0.203"
-serde_json = "1.0.117"
-sha2 = "0.10.8"
-env_logger = "0.11.5"
+dotenv = "0.15"
+tokio = "1.38"
+rand = "0.8"
+serde = "1"
+serde_json = "1"
+sha2 = "0.10"
+env_logger = "0.11"
 
 cashu_escrow_common = { path = "../common" }
 
