@@ -5,13 +5,14 @@ edition = "2021"
 description = "An application simulationg a user of the escrow service as driver."
 
 [dependencies]
-nostr-sdk = { version = "0.34.0", features = [] }
-cdk = "0.4.0"
-dotenv = "0.15.0"
-anyhow = "1.0.86"
-tokio = "1.38.0"
+nostr-sdk = { workspace = true }
+cdk = { workspace = true }
+log = { workspace = true }
+anyhow = { workspace = true}
+dotenv = { workspace = true }
+tokio = { workspace = true }
+env_logger = { workspace = true }
 
 cashu_escrow_common = { path = "../common" }
 cashu_escrow_client = {path = "../client"}
-log = "0.4.22"
-env_logger = "0.11.3"
+
