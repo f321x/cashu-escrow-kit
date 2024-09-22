@@ -41,7 +41,11 @@ async fn main() -> anyhow::Result<()> {
 
     let escrow_contract =
         TradeContract::from_client_cli_input(&cli_input, escrow_wallet.trade_pubkey.clone())?;
-    let nostr_client = NostrClient::new(cli_input.trader_nostr_keys).await?;
+    let relays = env::var("NOSTR_RELAYS")?
+        .split(',')
+        .map(String::from)
+        .collect();
+    let nostr_client = NostrClient::new(cli_input.trader_nostr_keys, relays).await?;
 
     InitEscrowClient::new(nostr_client, escrow_wallet, escrow_contract, cli_input.mode)
         .register_trade()

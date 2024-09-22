@@ -1,7 +1,7 @@
 use super::*;
 
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
+use std::{str::FromStr, time::Duration};
 
 /// Receive a message when only one mesage was sent by the escrow.
 #[tokio::test]
@@ -103,5 +103,6 @@ struct TestMessage2(usize);
 
 async fn create_nostr_client() -> NostrClient {
     let keys = Keys::generate();
-    NostrClient::new(keys).await.unwrap()
+    let relays: Vec<String> = vec!["ws://localhost:4736".to_string()];
+    NostrClient::new(keys, relays).await.unwrap()
 }
