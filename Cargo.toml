@@ -19,7 +19,7 @@ nostr-sdk = { version = "0.34", features = [] }
 cdk = "0.4.0"
 anyhow = "1"
 log = "0.4"
-dotenv = "0.15"
+dotenvy = "0.15"
 tokio = "1.38"
 serde_json = "1"
 serde = "*"

@@ -9,7 +9,7 @@ use cashu_escrow_common::nostr::NostrClient;
 use cdk::amount::{Amount, SplitTarget};
 use cli::trade_contract::FromClientCliInput;
 use cli::ClientCliInput;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 
