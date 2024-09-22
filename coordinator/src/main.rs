@@ -3,7 +3,7 @@ mod escrow_coordinator;
 use std::{env, str::FromStr};
 
 use cashu_escrow_common::nostr::NostrClient;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use escrow_coordinator::EscrowCoordinator;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
