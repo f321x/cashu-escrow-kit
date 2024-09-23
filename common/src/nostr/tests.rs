@@ -1,7 +1,7 @@
 use super::*;
 
 use serde::{Deserialize, Serialize};
-use std::{str::FromStr, time::Duration};
+use std::time::Duration;
 
 /// Receive a message when only one mesage was sent by the escrow.
 #[tokio::test]
