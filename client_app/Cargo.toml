@@ -9,7 +9,7 @@ nostr-sdk = { workspace = true }
 cdk = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true}
-dotenv = { workspace = true }
+dotenvy = { workspace = true }
 tokio = { workspace = true }
 env_logger = { workspace = true }
 
