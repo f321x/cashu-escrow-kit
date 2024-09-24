@@ -32,7 +32,7 @@ async fn main() -> anyhow::Result<()> {
     while let Err(err) = coordinator.run().await {
         error!("Coordinator loop exited with error: {:?}", err);
         coordinator = coordinator
-            .restart_coordinator(keys.clone(), relays.clone())
+            .restart_nostr_client(keys.clone(), relays.clone())
             .await?;
     }
     Ok(())
