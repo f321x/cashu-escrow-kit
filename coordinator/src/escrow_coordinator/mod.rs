@@ -7,7 +7,7 @@ use ndk::prelude::*;
 use ndk::{Filter, Kind, RelayPoolNotification};
 use nostr_sdk as ndk;
 use sha2::{Digest, Sha256};
-use std::collections::{HashMap, HashSet};
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tokio::sync::broadcast::error::RecvError;
 
 pub struct EscrowCoordinator {
@@ -64,7 +64,11 @@ impl EscrowCoordinator {
                                     EscrowCoordinator::parse_contract(&rumor.content)
                                 {
                                     debug!("Received contract: {}", &contract.trade_description);
-                                    if self.pending_contracts.contains_key(&contract_hash) {
+                                    if let Entry::Vacant(e) =
+                                        self.pending_contracts.entry(contract_hash)
+                                    {
+                                        e.insert(contract);
+                                    } else {
                                         self.pending_contracts.remove(&contract_hash);
                                         let _ = self
                                             .begin_trade(&contract_hash, &contract)
@@ -72,8 +76,6 @@ impl EscrowCoordinator {
                                             .inspect_err(|e| {
                                                 error!("Got error while beginning a trade: {}", e);
                                             });
-                                    } else {
-                                        self.pending_contracts.insert(contract_hash, contract);
                                     }
                                 }
                             }
@@ -107,7 +109,7 @@ impl EscrowCoordinator {
         );
         let contract_secret = CDKSecretKey::generate();
         self.active_contracts.insert(
-            contract_hash.clone(),
+            *contract_hash,
             ActiveTade {
                 _trade_contract: trade.clone(),
                 _coordinator_secret: contract_secret.clone(),

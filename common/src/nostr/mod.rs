@@ -64,7 +64,7 @@ impl NostrClient {
             .iter()
             .enumerate()
             .find_map(|(idx, message)| {
-                let result = serde_json::from_str::<T>(message).map_err(|e| anyhow::Error::new(e));
+                let result = serde_json::from_str::<T>(message).map_err(anyhow::Error::new);
                 match result {
                     Ok(_) => Some((idx, result)),
                     _ => None,
@@ -85,7 +85,7 @@ impl NostrClient {
                             let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
                             if rumor.kind == Kind::PrivateDirectMessage {
                                 let result = serde_json::from_str::<T>(&rumor.content)
-                                    .map_err(|e| anyhow::Error::new(e));
+                                    .map_err(anyhow::Error::new);
                                 match result {
                                     Ok(_) => break result,
                                     _ => {
@@ -114,12 +114,10 @@ impl NostrClient {
                 }
             }
         };
-        let result = match timeout(Duration::from_secs(timeout_secs), loop_future).await {
+        match timeout(Duration::from_secs(timeout_secs), loop_future).await {
             Ok(result) => result,
             Err(e) => Err(anyhow!("Timeout, {}", e)),
-        };
-
-        result
+        }
     }
 
     // coordinator specific function?
