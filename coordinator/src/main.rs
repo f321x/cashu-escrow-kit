@@ -18,16 +18,22 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let keys = Keys::from_str(&env::var("ESCROW_NSEC")?)?;
-    let relays = env::var("NOSTR_RELAYS")?
+    let relays: Vec<String> = env::var("NOSTR_RELAYS")?
         .split(',')
         .map(String::from)
         .collect();
-    let nostr_client = NostrClient::new(keys, relays).await?;
+    let nostr_client = NostrClient::new(keys.clone(), relays.clone()).await?;
     info!(
         "Coordinator npub: {}",
         nostr_client.public_key().to_bech32()?
     );
     info!("Starting service and waiting for trades...");
-    loop {}
-    // return EscrowCoordinator::new(nostr_client)?.run().await;
+    let mut coordinator = EscrowCoordinator::new(nostr_client)?;
+    while let Err(err) = coordinator.run().await {
+        error!("Coordinator loop exited with error: {:?}", err);
+        coordinator = coordinator
+            .restart_coordinator(keys.clone(), relays.clone())
+            .await?;
+    }
+    Ok(())
 }

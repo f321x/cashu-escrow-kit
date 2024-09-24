@@ -142,9 +142,11 @@ impl EscrowCoordinator {
         keys: Keys,
         relays: Vec<String>,
     ) -> anyhow::Result<Self> {
+        warn!("Restarting nostr client...");
         self.nostr_client.client.shutdown().await?;
-        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        tokio::time::sleep(std::time::Duration::from_secs(60)).await;
         self.nostr_client = NostrClient::new(keys, relays).await?;
+        info!("Nostr client restarted!");
         Ok(self)
     }
 }
