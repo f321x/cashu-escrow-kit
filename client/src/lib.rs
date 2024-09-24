@@ -11,11 +11,6 @@ pub fn start() {
 }
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
-
-#[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, wasm-game-of-life!");
+    info!("Hello, wasm-game-of-life!");
 }

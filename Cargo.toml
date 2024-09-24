@@ -15,7 +15,7 @@ opt-level = 3
 strip = true
 
 [workspace.dependencies]
-nostr-sdk = { version = "0.34", features = [] }
+nostr-sdk = { version = "0.35", features = [] }
 cdk = "0.4.0"
 anyhow = "1"
 log = "0.4"
