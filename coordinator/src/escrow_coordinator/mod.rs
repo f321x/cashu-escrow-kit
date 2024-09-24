@@ -137,7 +137,7 @@ impl EscrowCoordinator {
         Ok((trade_hash, contract))
     }
 
-    pub async fn restart_coordinator(
+    pub async fn restart_nostr_client(
         mut self,
         keys: Keys,
         relays: Vec<String>,
