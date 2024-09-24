@@ -7,13 +7,14 @@ use ndk::prelude::*;
 use ndk::{Filter, Kind, RelayPoolNotification};
 use nostr_sdk as ndk;
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use tokio::sync::broadcast::error::RecvError;
 
 pub struct EscrowCoordinator {
     nostr_client: NostrClient,
     pending_contracts: HashMap<[u8; 32], TradeContract>, // k: hash of contract json
     active_contracts: HashMap<[u8; 32], ActiveTade>,
+    received_events: HashSet<EventId>,
 }
 
 struct ActiveTade {
@@ -27,6 +28,7 @@ impl EscrowCoordinator {
             nostr_client,
             pending_contracts: HashMap::new(),
             active_contracts: HashMap::new(),
+            received_events: HashSet::new(),
         })
     }
 
@@ -47,6 +49,12 @@ impl EscrowCoordinator {
             match notifications.recv().await {
                 Ok(notification) => {
                     if let RelayPoolNotification::Event { event, .. } = notification {
+                        // check if we already processed this event previously
+                        match self.received_events.contains(&event.id) {
+                            true => continue,
+                            false => self.received_events.insert(event.id),
+                        };
+
                         if let Ok(unwrapped_gift) =
                             self.nostr_client.client.unwrap_gift_wrap(&event).await
                         {
