@@ -7,7 +7,7 @@ use ndk::prelude::*;
 use ndk::{Filter, Kind, RelayPoolNotification};
 use nostr_sdk as ndk;
 use sha2::{Digest, Sha256};
-use std::collections::{HashMap, HashSet};
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 use tokio::sync::broadcast::error::RecvError;
 
 pub struct EscrowCoordinator {
@@ -64,7 +64,9 @@ impl EscrowCoordinator {
                                     EscrowCoordinator::parse_contract(&rumor.content)
                                 {
                                     debug!("Received contract: {}", &contract.trade_description);
-                                    if let std::collections::hash_map::Entry::Vacant(e) = self.pending_contracts.entry(contract_hash) {
+                                    if let Entry::Vacant(e) =
+                                        self.pending_contracts.entry(contract_hash)
+                                    {
                                         e.insert(contract);
                                     } else {
                                         self.pending_contracts.remove(&contract_hash);
