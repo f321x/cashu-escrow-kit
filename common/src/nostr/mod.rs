@@ -141,10 +141,6 @@ impl NostrClient {
             .await?;
         Ok(())
     }
-
-    pub fn keys(&self) -> Keys {
-        self.keys.clone()
-    }
 }
 
 async fn init_subscription(
