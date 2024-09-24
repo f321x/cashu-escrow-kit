@@ -136,4 +136,15 @@ impl EscrowCoordinator {
         let trade_hash: [u8; 32] = hasher.finalize().into();
         Ok((trade_hash, contract))
     }
+
+    pub async fn restart_coordinator(
+        mut self,
+        keys: Keys,
+        relays: Vec<String>,
+    ) -> anyhow::Result<Self> {
+        self.nostr_client.client.shutdown().await?;
+        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        self.nostr_client = NostrClient::new(keys, relays).await?;
+        Ok(self)
+    }
 }
