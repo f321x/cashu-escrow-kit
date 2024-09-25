@@ -426,14 +426,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cdk",
- "console_error_panic_hook",
  "log",
  "nostr-sdk",
  "serde",
  "serde_json",
  "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
  "wasm-bindgen-test",
 ]
 
