@@ -4,13 +4,7 @@
 ```sh
 wasm-pack build
 ```
-
-## Run the web client
-On the web_client directory, run:
+## Run the wasm tests
 ```sh
-npm install
-npm run build
-npm run start
+wasm-pack test --firefox --headless
 ```
-
-Than open the browser and go to http://localhost:8080/.

@@ -1,0 +1,13 @@
+[package]
+name = "cashu_escrow_js"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+cashu_escrow_client = { path = "../../client" }
+console_error_panic_hook = "0.1"
+wasm-bindgen = "0.2.93"
+wasm-bindgen-futures = "0.4.43"

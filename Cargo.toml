@@ -5,6 +5,7 @@ members = [
     "coordinator",
     "common",
     "client_app",
+    "bindings/cashu_escrow_js",
 ]
 
 resolver = "2"
