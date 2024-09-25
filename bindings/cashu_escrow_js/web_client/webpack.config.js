@@ -13,11 +13,6 @@ module.exports = {
     asyncWebAssembly: true,
     syncWebAssembly: true,
   },
-  resolve: {
-    fallback: {
-      "env": false
-    }
-  },
   devServer: {
     static: {
       directory: path.join(__dirname, "dist"),

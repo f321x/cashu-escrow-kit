@@ -410,13 +410,11 @@ dependencies = [
  "anyhow",
  "cashu_escrow_common",
  "cdk",
- "console_error_panic_hook",
  "log",
  "nostr-sdk",
  "rand",
  "serde_json",
  "sha2",
- "wasm-bindgen",
  "wasm-bindgen-test",
 ]
 
@@ -450,6 +448,16 @@ dependencies = [
  "serde_json",
  "sha2",
  "tokio",
+]
+
+[[package]]
+name = "cashu_escrow_js"
+version = "0.1.0"
+dependencies = [
+ "cashu_escrow_client",
+ "console_error_panic_hook",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]

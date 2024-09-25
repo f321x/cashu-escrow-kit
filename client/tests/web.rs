@@ -5,12 +5,12 @@
 extern crate wasm_bindgen_test;
 use wasm_bindgen_test::*;
 
-extern crate cashu_escrow_client;
-use cashu_escrow_client::greet;
+use cashu_escrow_client::ecash::ClientEcashWallet;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn test_greet() {
-    greet();
+async fn create_wallet() {
+    let wallet = ClientEcashWallet::new("https://nomatter.what").await;
+    assert!(wallet.is_ok());
 }
