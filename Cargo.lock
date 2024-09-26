@@ -456,6 +456,7 @@ version = "0.1.0"
 dependencies = [
  "cashu_escrow_client",
  "cashu_escrow_common",
+ "cdk",
  "console_error_panic_hook",
  "nostr-sdk",
  "wasm-bindgen",
