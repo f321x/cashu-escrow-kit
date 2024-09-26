@@ -5,7 +5,7 @@ Javascript:javascript bindings for cashu-escrow-kit.
 ## Building the wasm module
 On the bindings/cashu_escrow_js directory, run:
 ```sh
-wasm-pack build
+wasm-pack build --dev
 ```
 
 ## Run the web client

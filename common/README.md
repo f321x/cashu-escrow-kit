@@ -1,4 +1,4 @@
-# Escrow Client Library
+# Escrow Common Library
 
 ## Build the wasm module
 ```sh
