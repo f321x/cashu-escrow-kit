@@ -28,14 +28,25 @@ impl JsNostrClient {
 
 #[wasm_bindgen(js_name = ClientEcashWallet)]
 pub struct JsClientEcashWallet {
-    _inner: ClientEcashWallet,
+    inner: ClientEcashWallet,
 }
 
 #[wasm_bindgen(js_class = ClientEcashWallet)]
 impl JsClientEcashWallet {
     #[wasm_bindgen(constructor)]
     pub async fn new(url: &str) -> Result<JsClientEcashWallet> {
-        let _inner = ClientEcashWallet::new(url).await.map_err(into_err)?;
-        Ok(Self { _inner })
+        let inner = ClientEcashWallet::new(url).await.map_err(into_err)?;
+        Ok(Self { inner })
+    }
+
+    #[wasm_bindgen(js_name = mintQuote)]
+    pub async fn mint_quote(&self, amount: u64) -> Result<String> {
+        let quote = self
+            .inner
+            .wallet
+            .mint_quote(amount.into())
+            .await
+            .map_err(into_err)?;
+        Ok(quote.id)
     }
 }

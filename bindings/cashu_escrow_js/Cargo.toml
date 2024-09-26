@@ -8,6 +8,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 nostr-sdk = { workspace = true }
+cdk = { workspace = true }
 cashu_escrow_common = { path = "../../common" }
 cashu_escrow_client = { path = "../../client" }
 console_error_panic_hook = "0.1"
