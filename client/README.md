@@ -2,7 +2,7 @@
 
 ## Build the wasm module
 ```sh
-wasm-pack build
+wasm-pack build --dev
 ```
 ## Run the wasm tests
 ```sh
