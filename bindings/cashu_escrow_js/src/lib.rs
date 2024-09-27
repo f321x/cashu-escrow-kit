@@ -21,7 +21,8 @@ impl JsNostrClient {
     #[wasm_bindgen(constructor)]
     pub async fn new(key: &str) -> Result<JsNostrClient> {
         let keys = Keys::parse(key).map_err(into_err)?;
-        let _inner = NostrClient::new(keys).await.map_err(into_err)?;
+        let relays = vec![String::from("ws://localhost:4736")];
+        let _inner = NostrClient::new(keys, relays).await.map_err(into_err)?;
         Ok(Self { _inner })
     }
 }
@@ -80,7 +81,7 @@ impl JsTradeContract {
             npubkey_seller: npub_from_str(seller_npub)?,
             npubkey_buyer: npub_from_str(buyer_npub)?,
             npubkey_coordinator: npub_from_str(coordinator_npub)?,
-            time_limit: time_limit,
+            time_limit,
             seller_ecash_public_key: seller_ecash_pubkey.to_string(),
             buyer_ecash_public_key: buyer_ecash_pubkey.to_string(),
         };
