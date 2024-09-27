@@ -12,6 +12,7 @@ wasm_bindgen_test_configure!(run_in_browser);
 #[wasm_bindgen_test]
 async fn test_create_nostr_client() {
     let keys = Keys::generate();
-    let nostr_client = NostrClient::new(keys).await;
+    let relays = vec![String::from("ws://localhost:4736")];
+    let nostr_client = NostrClient::new(keys, relays).await;
     assert!(nostr_client.is_ok());
 }
