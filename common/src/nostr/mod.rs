@@ -4,7 +4,7 @@ mod tests;
 use std::time::Duration;
 
 use crate::model::EscrowRegistration;
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use nostr_sdk::prelude::*;
@@ -28,20 +28,16 @@ pub struct NostrClient {
 const CACHE_SIZE: usize = 10;
 
 impl NostrClient {
-    pub async fn new(keys: Keys) -> anyhow::Result<Self> {
+    pub async fn new(keys: Keys, relays: Vec<String>) -> anyhow::Result<Self> {
         let client = Client::new(&keys);
 
-        //client.add_relay("wss://relay.damus.io").await?;
-        //client.add_relay("wss://relay.primal.net").await?;
-        // client.add_relay("wss://relay.nostr.band").await?;
-        /* client
-        .add_relay("wss://ftp.halifax.rwth-aachen.de/nostr")
-        .await?; */
-        //client.add_relay("wss://nostr.mom").await?;
-        //client.add_relay("wss://relay.nostrplebs.com").await?; (having errors)
-        client.add_relay("ws://localhost:4736").await?;
-
         // Connect to relays
+        for relay in &relays {
+            client
+                .add_relay(relay)
+                .await
+                .context(format!("Error adding nostr relay: {}", relay))?;
+        }
         client.connect().await;
 
         let (_subscription_id, notifications_receiver) = init_subscription(&keys, &client).await?;
@@ -68,7 +64,7 @@ impl NostrClient {
             .iter()
             .enumerate()
             .find_map(|(idx, message)| {
-                let result = serde_json::from_str::<T>(message).map_err(|e| anyhow::Error::new(e));
+                let result = serde_json::from_str::<T>(message).map_err(anyhow::Error::new);
                 match result {
                     Ok(_) => Some((idx, result)),
                     _ => None,
@@ -89,7 +85,7 @@ impl NostrClient {
                             let rumor = self.client.unwrap_gift_wrap(&event).await?.rumor;
                             if rumor.kind == Kind::PrivateDirectMessage {
                                 let result = serde_json::from_str::<T>(&rumor.content)
-                                    .map_err(|e| anyhow::Error::new(e));
+                                    .map_err(anyhow::Error::new);
                                 match result {
                                     Ok(_) => break result,
                                     _ => {
@@ -118,12 +114,10 @@ impl NostrClient {
                 }
             }
         };
-        let result = match timeout(Duration::from_secs(timeout_secs), loop_future).await {
+        match timeout(Duration::from_secs(timeout_secs), loop_future).await {
             Ok(result) => result,
             Err(e) => Err(anyhow!("Timeout, {}", e)),
-        };
-
-        result
+        }
     }
 
     // coordinator specific function?

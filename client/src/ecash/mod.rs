@@ -93,7 +93,7 @@ impl ClientEcashWallet {
     ) -> anyhow::Result<()> {
         let spending_conditions = Self::assemble_escrow_conditions(contract, escrow_registration)?;
         self.wallet
-            .verify_token_p2pk(&escrow_token, spending_conditions)?;
+            .verify_token_p2pk(escrow_token, spending_conditions)?;
         Ok(())
     }
 }

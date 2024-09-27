@@ -3,7 +3,7 @@ mod escrow_coordinator;
 use std::{env, str::FromStr};
 
 use cashu_escrow_common::nostr::NostrClient;
-use dotenv::dotenv;
+use dotenvy::dotenv;
 use escrow_coordinator::EscrowCoordinator;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
@@ -18,7 +18,11 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     let keys = Keys::from_str(&env::var("ESCROW_NSEC")?)?;
-    let nostr_client = NostrClient::new(keys).await?;
+    let relays = env::var("NOSTR_RELAYS")?
+        .split(',')
+        .map(String::from)
+        .collect();
+    let nostr_client = NostrClient::new(keys, relays).await?;
     info!(
         "Coordinator npub: {}",
         nostr_client.public_key().to_bech32()?
