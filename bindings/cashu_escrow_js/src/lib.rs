@@ -68,24 +68,61 @@ impl JsTradeContract {
     pub fn new(
         description: &str,
         sat_amount: u64,
-        seller_npub: &str,
-        buyer_npub: &str,
-        coordinator_npub: &str,
+        trade_nostr_identities: JsTradeNostrIdentities,
         time_limit: u64,
-        seller_ecash_pubkey: &str,
-        buyer_ecash_pubkey: &str,
+        ecash_identities: JsEcashIdentities,
     ) -> Result<JsTradeContract> {
         let _inner = TradeContract {
             trade_description: description.to_string(),
             trade_amount_sat: sat_amount,
-            npubkey_seller: npub_from_str(seller_npub)?,
-            npubkey_buyer: npub_from_str(buyer_npub)?,
-            npubkey_coordinator: npub_from_str(coordinator_npub)?,
+            npubkey_seller: npub_from_str(&trade_nostr_identities.seller_npub)?,
+            npubkey_buyer: npub_from_str(&trade_nostr_identities.buyer_npub)?,
+            npubkey_coordinator: npub_from_str(&trade_nostr_identities.coordinator_npub)?,
             time_limit,
-            seller_ecash_public_key: seller_ecash_pubkey.to_string(),
-            buyer_ecash_public_key: buyer_ecash_pubkey.to_string(),
+            seller_ecash_public_key: ecash_identities.seller_pubkey,
+            buyer_ecash_public_key: ecash_identities.buyer_pubkey,
         };
         Ok(Self { _inner })
+    }
+}
+
+#[wasm_bindgen(js_name = TradeNostrIdentities)]
+pub struct JsTradeNostrIdentities {
+    seller_npub: String,
+    buyer_npub: String,
+    coordinator_npub: String,
+}
+
+#[wasm_bindgen(js_class = TradeNostrIdentities)]
+impl JsTradeNostrIdentities {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        seller_npub: String,
+        buyer_npub: String,
+        coordinator_npub: String,
+    ) -> JsTradeNostrIdentities {
+        Self {
+            seller_npub,
+            buyer_npub,
+            coordinator_npub,
+        }
+    }
+}
+
+#[wasm_bindgen(js_name = EcashIdentities)]
+pub struct JsEcashIdentities {
+    seller_pubkey: String,
+    buyer_pubkey: String,
+}
+
+#[wasm_bindgen(js_class = EcashIdentities)]
+impl JsEcashIdentities {
+    #[wasm_bindgen(constructor)]
+    pub fn new(seller_pubkey: String, buyer_pubkey: String) -> JsEcashIdentities {
+        Self {
+            seller_pubkey,
+            buyer_pubkey,
+        }
     }
 }
 
