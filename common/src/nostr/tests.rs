@@ -103,5 +103,6 @@ struct TestMessage2(usize);
 
 async fn create_nostr_client() -> NostrClient {
     let keys = Keys::generate();
-    NostrClient::new(keys).await.unwrap()
+    let relays: Vec<String> = vec!["ws://localhost:4736".to_string()];
+    NostrClient::new(keys, relays).await.unwrap()
 }
