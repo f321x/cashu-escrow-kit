@@ -19,9 +19,8 @@ pub struct JsNostrClient {
 #[wasm_bindgen(js_class = NostrClient)]
 impl JsNostrClient {
     #[wasm_bindgen(constructor)]
-    pub async fn new(key: &str) -> Result<JsNostrClient> {
+    pub async fn new(key: &str, relays: Vec<String>) -> Result<JsNostrClient> {
         let keys = Keys::parse(key).map_err(into_err)?;
-        let relays = vec![String::from("ws://localhost:4736")];
         let _inner = NostrClient::new(keys, relays).await.map_err(into_err)?;
         Ok(Self { _inner })
     }

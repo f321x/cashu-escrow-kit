@@ -29,5 +29,7 @@ const tradeContract = await new TradeContract(
 console.log("Created a TradeContract:", tradeContract);
 
 // NostrClient
-const nostrClient = await new NostrClient("nsec182ul8zg2jlje6gtejs4pp4y4un674esq9qmrdxn2mewynkegahgqudmhvh");
+const nsec = "nsec182ul8zg2jlje6gtejs4pp4y4un674esq9qmrdxn2mewynkegahgqudmhvh";
+const relays = ["ws://localhost:4736"];
+const nostrClient = await new NostrClient(nsec, relays);
 console.log("After NostrClient");
