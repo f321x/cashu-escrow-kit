@@ -1,18 +1,10 @@
-#[cfg(test)]
-mod tests;
-
-use std::time::Duration;
-
 use crate::model::EscrowRegistration;
-use anyhow::{anyhow, Context};
+use anyhow::Context;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace, warn};
 use nostr_sdk::prelude::*;
 use serde::de::DeserializeOwned;
-use tokio::{
-    sync::broadcast::{error::RecvError, Receiver},
-    time::timeout,
-};
+use tokio::sync::broadcast::{error::RecvError, Receiver};
 
 pub struct NostrClient {
     keys: Keys,
@@ -25,7 +17,7 @@ pub struct NostrClient {
     messages_cache: Vec<String>,
 }
 
-const CACHE_SIZE: usize = 10;
+pub const CACHE_SIZE: usize = 10;
 
 impl NostrClient {
     pub async fn new(keys: Keys, relays: Vec<String>) -> anyhow::Result<Self> {
@@ -57,7 +49,7 @@ impl NostrClient {
 
     pub async fn receive_escrow_message<T: DeserializeOwned>(
         &mut self,
-        timeout_secs: u64,
+        _timeout_secs: u64,
     ) -> anyhow::Result<T> {
         let hit_idx_res = self
             .messages_cache
@@ -114,10 +106,16 @@ impl NostrClient {
                 }
             }
         };
-        match timeout(Duration::from_secs(timeout_secs), loop_future).await {
+        // Tokio's time module doesn't work on the Web yet, see: https://github.com/tokio-rs/tokio/pull/6740
+        #[cfg(not(target_arch = "wasm32"))]
+        match tokio::time::timeout(std::time::Duration::from_secs(_timeout_secs), loop_future).await
+        {
             Ok(result) => result,
-            Err(e) => Err(anyhow!("Timeout, {}", e)),
+            Err(e) => Err(anyhow::anyhow!("Timeout, {}", e)),
         }
+        // TODO: Improve this workaround for wasm. For now we resign to timeout if it takes too long.
+        #[cfg(target_arch = "wasm32")]
+        loop_future.await
     }
 
     // coordinator specific function?
@@ -140,6 +138,10 @@ impl NostrClient {
             .send_private_msg(receivers.1, &registration_json, None)
             .await?;
         Ok(())
+    }
+
+    pub fn messages_cache_len(&self) -> usize {
+        self.messages_cache.len()
     }
 }
 

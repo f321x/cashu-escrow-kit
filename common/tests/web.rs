@@ -2,17 +2,19 @@
 
 #![cfg(target_arch = "wasm32")]
 
-use wasm_bindgen_test::*;
+mod common;
 
-use cashu_escrow_common::nostr::NostrClient;
-use nostr_sdk::prelude::*;
+use common::*;
+use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-async fn test_create_nostr_client() {
-    let keys = Keys::generate();
-    let relays = vec![String::from("ws://localhost:4736")];
-    let nostr_client = NostrClient::new(keys, relays).await;
-    assert!(nostr_client.is_ok());
+async fn wasm_receive_1_message() -> anyhow::Result<()> {
+    test_receive_1_message().await
+}
+
+#[wasm_bindgen_test]
+async fn wasm_receive_2_messages_from_cache() -> anyhow::Result<()> {
+    test_receive_2_messages_from_cache().await
 }

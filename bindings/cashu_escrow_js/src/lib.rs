@@ -15,7 +15,7 @@ pub fn start() {
 
 #[wasm_bindgen(js_name = NostrClient)]
 pub struct JsNostrClient {
-    pub(crate) _inner: NostrClient,
+    pub(crate) inner: NostrClient,
 }
 
 #[wasm_bindgen(js_class = NostrClient)]
@@ -23,8 +23,8 @@ impl JsNostrClient {
     #[wasm_bindgen(constructor)]
     pub async fn new(key: &str, relays: Vec<String>) -> Result<JsNostrClient> {
         let keys = Keys::parse(key).map_err(into_err)?;
-        let _inner = NostrClient::new(keys, relays).await.map_err(into_err)?;
-        Ok(Self { _inner })
+        let inner = NostrClient::new(keys, relays).await.map_err(into_err)?;
+        Ok(Self { inner })
     }
 }
 
@@ -60,7 +60,7 @@ impl JsClientEcashWallet {
 
 #[wasm_bindgen(js_name = InitEscrowClient)]
 pub struct JsInitEscrowClient {
-    _inner: InitEscrowClient,
+    inner: InitEscrowClient,
 }
 
 #[wasm_bindgen(js_class = InitEscrowClient)]
@@ -72,12 +72,19 @@ impl JsInitEscrowClient {
         escrow_contract: JsTradeContract,
         mode: JsTradeMode,
     ) -> Result<JsInitEscrowClient> {
-        let _inner = InitEscrowClient::new(
-            nostr_client._inner,
+        let inner = InitEscrowClient::new(
+            nostr_client.inner,
             escrow_wallet.inner,
             escrow_contract.inner,
             *mode,
         );
-        Ok(Self { _inner })
+        Ok(Self { inner })
+    }
+
+    #[wasm_bindgen(js_name = registerTrade)]
+    pub async fn register_trade(self) -> Result<String> {
+        self.inner.register_trade().await.map_err(into_err)?;
+        // TODO: return the correct value
+        Ok("registration".to_string())
     }
 }

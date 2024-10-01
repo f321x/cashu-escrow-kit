@@ -1,4 +1,4 @@
-import { ClientEcashWallet, NostrClient, TradeContract, TradeNostrIdentities, EcashIdentities } from "cashu_escrow_js";
+import { ClientEcashWallet, NostrClient, TradeContract, TradeNostrIdentities, EcashIdentities, InitEscrowClient, TradeMode } from "cashu_escrow_js";
 
 
 const escrowWallet = await new ClientEcashWallet("http://localhost:3338");
@@ -33,3 +33,11 @@ const nsec = "nsec182ul8zg2jlje6gtejs4pp4y4un674esq9qmrdxn2mewynkegahgqudmhvh";
 const relays = ["ws://localhost:4736"];
 const nostrClient = await new NostrClient(nsec, relays);
 console.log("After NostrClient");
+
+// Init Escrow Client
+const initEscrowClient = await new InitEscrowClient(nostrClient, escrowWallet, tradeContract, TradeMode.Buyer);
+console.log("After InitEscrowClient");
+
+// Trade Pipeline
+initEscrowClient.registerTrade();
+console.log("After registerTrade");
