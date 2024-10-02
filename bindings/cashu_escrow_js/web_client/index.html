@@ -9,16 +9,26 @@
     <script src="./bootstrap.js"></script>
 
     <script>
+      let wallet;
       const intervalId =setInterval(function() {
         if (typeof app === 'object') {
-          app.createWallet().then(wallet => {
-            document.getElementById('trade_public_key').textContent = wallet.tradePublicKey;
+          app.createWallet().then(w => {
+            document.getElementById('trade_public_key').textContent = w.tradePublicKey;
+            wallet = w;
           });
           clearInterval(intervalId);
         } else {
           console.error('createWallet function not found');
         }  
       }, 1000);
+    </script>
+
+    <script>
+      function runTradePipeline() {
+        const role = document.getElementById('role').value;
+        const partnerPublicKey = document.getElementById('partner_public_key').value;
+        app.runTradePipeline(role, wallet, partnerPublicKey);
+      }
     </script>
 
     <h1>Escrow Web Client</h1>
@@ -33,11 +43,11 @@
       
     <div style="margin: 10px;">
       <label for="partner_public_key">Partner Public Key:</label>
-      <input type="text" id="partner_public_key" name="partner_public_key" placeholder="Public Key">
+      <input type="text" id="partner_public_key" name="partner_public_key" placeholder="Public Key" style="width: 500px;">
     </div>
 
     <div style="margin: 10px;">
-      <button id="start_button">Start</button>
+      <button id="start_button" onclick="runTradePipeline()">Start</button>
     </div>
   </body>
 </html>

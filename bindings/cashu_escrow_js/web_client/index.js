@@ -1,7 +1,5 @@
 import { ClientEcashWallet, NostrClient, TradeContract, TradeNostrIdentities, EcashIdentities, InitEscrowClient, TradeMode } from "cashu_escrow_js";
 
-//runTradePipeline(TradeMode.Buyer)
-
 async function createWallet() {
     console.log("Creating wallet...");
     const escrowWallet = await new ClientEcashWallet("http://localhost:3338");
@@ -9,9 +7,9 @@ async function createWallet() {
     return escrowWallet;
 }
 
-async function runTradePipeline(mode, escrowWallet, partnerPubkey) {
-    const modeName = mode == TradeMode.Buyer ? "Buyer" : "Seller";
-
+async function runTradePipeline(role, escrowWallet, partnerPubkey) {
+    const mode = role === "buyer" ? TradeMode.Buyer : TradeMode.Seller;
+    
     if (mode == TradeMode.Buyer) {
         console.log("minting some ECash...");
         const quoteId = await escrowWallet.mintQuote(BigInt(5000));
