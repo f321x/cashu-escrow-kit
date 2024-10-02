@@ -1,4 +1,7 @@
-use cashu_escrow_client::{ecash::ClientEcashWallet, escrow_client::InitEscrowClient};
+use cashu_escrow_client::{
+    ecash::ClientEcashWallet,
+    escrow_client::{InitEscrowClient, RegisteredEscrowClient, TokenExchangedEscrowClient},
+};
 use cashu_escrow_common::nostr::NostrClient;
 use error::{into_err, Result};
 use models::{JsTradeContract, JsTradeMode};
@@ -82,9 +85,35 @@ impl JsInitEscrowClient {
     }
 
     #[wasm_bindgen(js_name = registerTrade)]
-    pub async fn register_trade(self) -> Result<String> {
-        self.inner.register_trade().await.map_err(into_err)?;
-        // TODO: return the correct value
-        Ok("registration".to_string())
+    pub async fn register_trade(self) -> Result<JsRegisteredEscrowClient> {
+        let inner = self.inner.register_trade().await.map_err(into_err)?;
+        Ok(JsRegisteredEscrowClient { inner })
+    }
+}
+
+#[wasm_bindgen(js_name = RegisteredEscrowClient)]
+pub struct JsRegisteredEscrowClient {
+    inner: RegisteredEscrowClient,
+}
+
+#[wasm_bindgen(js_class = RegisteredEscrowClient)]
+impl JsRegisteredEscrowClient {
+    #[wasm_bindgen(js_name = exchangeTradeToken)]
+    pub async fn exchange_trade_token(self) -> Result<JsTokenExchangedEscrowClient> {
+        let inner = self.inner.exchange_trade_token().await.map_err(into_err)?;
+        Ok(JsTokenExchangedEscrowClient { inner })
+    }
+}
+
+#[wasm_bindgen(js_name = TokenExchangedEscrowClient)]
+pub struct JsTokenExchangedEscrowClient {
+    inner: TokenExchangedEscrowClient,
+}
+
+#[wasm_bindgen(js_class = TokenExchangedEscrowClient)]
+impl JsTokenExchangedEscrowClient {
+    #[wasm_bindgen(js_name = doYourTradeDuties)]
+    pub async fn do_your_trade_duties(self) -> Result<()> {
+        self.inner.do_your_trade_duties().await.map_err(into_err)
     }
 }
