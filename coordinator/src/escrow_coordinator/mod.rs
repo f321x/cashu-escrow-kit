@@ -1,5 +1,4 @@
 use super::*;
-use anyhow::anyhow;
 use cashu_escrow_common::model::TradeContract;
 use cdk::nuts::SecretKey as CDKSecretKey;
 use hashes::hex::DisplayHex;
@@ -81,15 +80,13 @@ impl EscrowCoordinator {
                             }
                         }
                     } else if RelayPoolNotification::Shutdown == notification {
-                        break Err(anyhow!(
-                            "Got shutdown notification, breaking coordinator loop!"
-                        ));
+                        error!("Got shutdown notification, restarting nostr client!");
+                        self.reconnect_nostr_client().await?;
                     }
                 }
                 Err(RecvError::Closed) => {
-                    break Err(anyhow!(
-                        "Got closed error from channel, breaking coordinator loop!"
-                    ))
+                    error!("Got closed error from channel, restarting nostr client...");
+                    self.reconnect_nostr_client().await?;
                 }
                 Err(RecvError::Lagged(count)) => {
                     warn!("Lost {} events, resuming after that...", count);
@@ -137,16 +134,12 @@ impl EscrowCoordinator {
         Ok((trade_hash, contract))
     }
 
-    pub async fn restart_nostr_client(
-        mut self,
-        keys: Keys,
-        relays: Vec<String>,
-    ) -> anyhow::Result<Self> {
-        warn!("Restarting nostr client...");
-        self.nostr_client.client.shutdown().await?;
+    async fn reconnect_nostr_client(&self) -> anyhow::Result<()> {
+        self.nostr_client.client.disconnect().await?;
+        warn!("Reconnecting nostr client in 60 seconds...");
         tokio::time::sleep(std::time::Duration::from_secs(60)).await;
-        self.nostr_client = NostrClient::new(keys, relays).await?;
-        info!("Nostr client restarted!");
-        Ok(self)
+        self.nostr_client.client.connect().await;
+        info!("Nostr client reconnected sucessfully!");
+        Ok(())
     }
 }
