@@ -1,17 +1,8 @@
-//! Test suite for the Web and headless browsers.
-
-#![cfg(target_arch = "wasm32")]
-
-extern crate wasm_bindgen_test;
-
 use cashu_escrow_client::ecash::ClientEcashWallet;
 use cdk::{amount::SplitTarget, wallet::SendKind, Amount};
 use std::assert_eq;
-use wasm_bindgen_test::*;
 
-wasm_bindgen_test_configure!(run_in_browser);
-
-#[wasm_bindgen_test]
+#[tokio::test]
 async fn mint_ecash() -> anyhow::Result<()> {
     let wallet_result = ClientEcashWallet::new("http://localhost:3338").await;
     assert!(wallet_result.is_ok());
