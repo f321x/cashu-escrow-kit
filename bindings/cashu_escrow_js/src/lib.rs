@@ -4,6 +4,7 @@ use cashu_escrow_client::{
 };
 use cashu_escrow_common::nostr::NostrClient;
 use error::{into_err, Result};
+use log::Level;
 use models::{JsTradeContract, JsTradeMode};
 use nostr_sdk::prelude::*;
 use wasm_bindgen::prelude::*;
@@ -14,6 +15,8 @@ mod models;
 #[wasm_bindgen(start)]
 pub fn start() {
     console_error_panic_hook::set_once();
+
+    let _ = console_log::init_with_level(Level::Debug);
 }
 
 #[wasm_bindgen(js_name = NostrClient)]
