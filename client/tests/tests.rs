@@ -1,5 +1,6 @@
 use cashu_escrow_client::ecash::ClientEcashWallet;
 use cdk::{amount::SplitTarget, wallet::SendKind, Amount};
+#[allow(unused_imports)]
 use std::assert_eq;
 
 #[tokio::test]
@@ -10,6 +11,11 @@ async fn mint_ecash() -> anyhow::Result<()> {
     let wallet = wallet_result?.wallet;
     let mint_quote_result = wallet.mint_quote(Amount::from(1000)).await;
     assert!(mint_quote_result.is_ok());
+    wallet
+        .mint(&mint_quote_result.unwrap().id, SplitTarget::None, None)
+        .await
+        .unwrap();
+    assert!(wallet.total_balance().await? >= Amount::from(1));
 
     let token_result = wallet
         .send(
@@ -21,10 +27,11 @@ async fn mint_ecash() -> anyhow::Result<()> {
             true,
         )
         .await;
-    assert!(token_result.is_err());
-    assert_eq!(
-        &token_result.err().unwrap().to_string(),
-        "Insufficient funds not expected"
-    );
+    // assert!(token_result.is_err());
+    // assert_eq!(
+    //     &token_result.err().unwrap().to_string(),
+    //     "Insufficient funds not expected"
+    // );
+    assert!(token_result.is_ok());
     Ok(())
 }
