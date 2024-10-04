@@ -139,7 +139,7 @@ impl EscrowCoordinator {
         warn!("Reconnecting nostr client in 60 seconds...");
         tokio::time::sleep(std::time::Duration::from_secs(60)).await;
         self.nostr_client.client.connect().await;
-        info!("Nostr client reconnected sucessfully!");
+        info!("Nostr client reconnected successfully!");
         Ok(())
     }
 }
