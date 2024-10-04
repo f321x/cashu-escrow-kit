@@ -15,17 +15,21 @@
           app.createWallet().then(w => {
             document.getElementById('trade_public_key').textContent = w.tradePublicKey;
             wallet = w;
+            console.log('Created wallet: ' + JSON.stringify(wallet));
           });
           clearInterval(intervalId);
         } else {
-          console.error('createWallet function not found');
+          console.error('app object not found');
         }  
       }, 1000);
 
       function runTradePipeline() {
-        const role = document.getElementById('role').value;
-        const partnerPublicKey = document.getElementById('partner_public_key').value;
-        app.runTradePipeline(role, wallet, partnerPublicKey);
+        if (wallet) {
+          console.log('Wallet: ' + JSON.stringify(wallet));
+          const role = document.getElementById('role').value;
+          const partnerPublicKey = document.getElementById('partner_public_key').value;
+          app.runTradePipeline(role, wallet, partnerPublicKey);
+        }
       }
     </script>
 
