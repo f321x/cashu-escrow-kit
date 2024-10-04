@@ -70,6 +70,10 @@ impl ClientEcashWallet {
         contract: &TradeContract,
         escrow_registration: &EscrowRegistration,
     ) -> anyhow::Result<Token> {
+        trace!(
+            "create escrow token, current balance: {}",
+            self.wallet.total_balance().await?
+        );
         let spending_conditions = Self::assemble_escrow_conditions(contract, escrow_registration)?;
         let token = self
             .wallet
