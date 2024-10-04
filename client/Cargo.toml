@@ -9,6 +9,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+tokio = { workspace = true }
 nostr-sdk = { workspace = true }
 cdk = { workspace = true }
 anyhow = { workspace = true }

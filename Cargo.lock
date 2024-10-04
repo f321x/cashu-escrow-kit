@@ -415,6 +415,7 @@ dependencies = [
  "rand",
  "serde_json",
  "sha2",
+ "tokio",
  "wasm-bindgen-test",
 ]
 
