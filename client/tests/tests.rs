@@ -1,37 +1,12 @@
-use cashu_escrow_client::ecash::ClientEcashWallet;
-use cdk::{amount::SplitTarget, wallet::SendKind, Amount};
-#[allow(unused_imports)]
-use std::assert_eq;
+mod common;
+
+use common::{check_mint_and_send, create_wallet};
 
 #[tokio::test]
-async fn mint_ecash() -> anyhow::Result<()> {
-    let wallet_result = ClientEcashWallet::new("http://localhost:3338").await;
+async fn send_minted_ecash() {
+    let wallet_result = create_wallet().await;
     assert!(wallet_result.is_ok());
 
-    let wallet = wallet_result?.wallet;
-    let mint_quote_result = wallet.mint_quote(Amount::from(1000)).await;
-    assert!(mint_quote_result.is_ok());
-    wallet
-        .mint(&mint_quote_result.unwrap().id, SplitTarget::None, None)
-        .await
-        .unwrap();
-    assert!(wallet.total_balance().await? >= Amount::from(1));
-
-    let token_result = wallet
-        .send(
-            Amount::from(1000),
-            Some("Test spend".to_string()),
-            None,
-            &SplitTarget::None,
-            &SendKind::OnlineExact,
-            true,
-        )
-        .await;
-    // assert!(token_result.is_err());
-    // assert_eq!(
-    //     &token_result.err().unwrap().to_string(),
-    //     "Insufficient funds not expected"
-    // );
-    assert!(token_result.is_ok());
-    Ok(())
+    let wallet = wallet_result.unwrap().wallet;
+    check_mint_and_send(wallet).await;
 }
