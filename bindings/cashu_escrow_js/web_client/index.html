@@ -48,8 +48,31 @@
       <input type="text" id="partner_public_key" name="partner_public_key" placeholder="Public Key" style="width: 500px;">
     </div>
 
-    <div style="margin: 10px;">
+    <div style="margin-top: 30px; margin-left: 10px; margin-right: 10px; margin-bottom: 30px;">
       <button id="start_button" onclick="runTradePipeline()">Start</button>
+    </div>
+
+    <hr/>
+
+    <h2>Trade Steps</h2>
+    <div style="margin-bottom: 10px;">
+      <label for="contract">Create Trade Contract:</label>
+      <input type="checkbox" id="contract"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="register-trade">Register Trade</label>
+      <input type="checkbox" id="register-trade"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="exchange-token">Exchange Token</label>
+      <input type="checkbox" id="exchange-token"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="do-your-duties">Do your Duties</label>
+      <input type="checkbox" id="do-your-duties"/>
     </div>
   </body>
 </html>
