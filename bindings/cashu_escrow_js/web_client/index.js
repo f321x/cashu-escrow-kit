@@ -12,8 +12,8 @@ async function runTradePipeline(role, escrowWallet, partnerPubkey) {
     
     if (mode == TradeMode.Buyer) {
         console.log("minting some ECash...");
-        const quoteId = await escrowWallet.mintQuote(BigInt(5000));
-        console.log("minted with quoteId", quoteId);
+        const token = await escrowWallet.mint(BigInt(5000));
+        console.log("minted token: ", token);
     }
 
     const description = "Test contract";
