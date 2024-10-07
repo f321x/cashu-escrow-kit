@@ -3,6 +3,7 @@ use cashu_escrow_client::{
     escrow_client::{InitEscrowClient, RegisteredEscrowClient, TokenExchangedEscrowClient},
 };
 use cashu_escrow_common::nostr::NostrClient;
+use cdk::amount::SplitTarget;
 use error::{into_err, Result};
 use log::Level;
 use models::{JsTradeContract, JsTradeMode};
@@ -47,12 +48,12 @@ impl JsClientEcashWallet {
         Ok(Self { inner })
     }
 
-    #[wasm_bindgen(js_name = mintQuote)]
-    pub async fn mint_quote(&self, amount: u64) -> Result<String> {
-        let quote = self
-            .inner
-            .wallet
-            .mint_quote(amount.into())
+    #[wasm_bindgen(js_name = mint)]
+    pub async fn mint(&self, amount: u64) -> Result<String> {
+        let wallet = &self.inner.wallet;
+        let quote = wallet.mint_quote(amount.into()).await.map_err(into_err)?;
+        wallet
+            .mint(&quote.id, SplitTarget::None, None)
             .await
             .map_err(into_err)?;
         Ok(quote.id)
