@@ -37,6 +37,7 @@ async function runTradePipeline(role, escrowWallet, partnerPubkey) {
         ecashIdentities,
     );
     console.log("Created a TradeContract", tradeContract);
+    document.getElementById('contract').checked = true;
 
     // NostrClient
     const nsec = mode == TradeMode.Buyer ? "nsec182ul8zg2jlje6gtejs4pp4y4un674esq9qmrdxn2mewynkegahgqudmhvh" : "nsec1vackt9cn8ujwz9t2yj6x29d4tgjx3uhp5h0fyev8tp5lnw40lcls3rp7hp";
@@ -52,10 +53,13 @@ async function runTradePipeline(role, escrowWallet, partnerPubkey) {
     console.log("Starting trade pipeline...");
     const registeredClient = await initEscrowClient.registerTrade();
     console.log("After registerTrade.");
+    document.getElementById('register-trade').checked = true;
     const exchangedClient = await registeredClient.exchangeTradeToken();
     console.log("After exchangeTradeToken.");
+    document.getElementById('exchange-token').checked = true;
     await exchangedClient.doYourTradeDuties();
     console.log("After doYourTradeDuties.");
+    document.getElementById('do-your-duties').checked = true;
 }
 
 export { createWallet, runTradePipeline };
