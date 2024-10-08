@@ -35,7 +35,7 @@ The client could be distributed as wasm library and rust crate. There could also
 ## Testing
 The current `NostrClient` code only uses an in memory local test relay, which must be started before testing.
 
-By now we use the relay at `git@github.com:rodant/bucket.git`. To start the relay locally:
+By now we use the relay at `https://github.com/rodant/bucket`. To start the relay locally:
 1. Checkout the master branch from the repo above.
 2. Run `yarn`, only needed the first time.
 2. Start the relay with `yarn start`.
