@@ -1,0 +1,18 @@
+[package]
+name = "cashu_escrow_js"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+nostr-sdk = { workspace = true }
+cdk = { workspace = true }
+cashu_escrow_common = { path = "../../common" }
+cashu_escrow_client = { path = "../../client" }
+log = { workspace = true }
+console_log = { workspace = true }
+console_error_panic_hook = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }

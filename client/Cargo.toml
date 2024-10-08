@@ -5,7 +5,11 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+tokio = { workspace = true }
 nostr-sdk = { workspace = true }
 cdk = { workspace = true }
 anyhow = { workspace = true }
@@ -15,3 +19,10 @@ serde_json = { workspace = true }
 sha2 = { workspace = true }
 
 cashu_escrow_common = { path = "../common" }
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.43"
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
