@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Escrow Web Client</title>
+  </head>
+  <body>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <script src="./bootstrap.js"></script>
+
+    <script>
+      let wallet;
+      const intervalId = setInterval(function() {
+        if (typeof app === 'object') {
+          app.createWallet().then(w => {
+            document.getElementById('trade_public_key').textContent = w.tradePublicKey;
+            wallet = w;
+            console.log('Created wallet: ' + JSON.stringify(wallet));
+          });
+          clearInterval(intervalId);
+        } else {
+          console.error('app object not found');
+        }  
+      }, 1000);
+
+      function runTradePipeline() {
+        if (wallet) {
+          console.log('Wallet: ' + JSON.stringify(wallet));
+          const role = document.getElementById('role').value;
+          const partnerPublicKey = document.getElementById('partner_public_key').value;
+          app.runTradePipeline(role, wallet, partnerPublicKey);
+        }
+      }
+    </script>
+
+    <h1>Escrow Web Client</h1>
+    <h2>Your trade public key is:</h2>
+    <div id="trade_public_key"></div>
+    <h2>Please enter your role in the trade (buyer or seller) and public key of your partner</h2>
+    
+    <div style="margin: 10px;">
+      <label for="role">Role:</label>
+      <input type="text" id="role" name="role" placeholder="buyer or seller">
+    </div>
+      
+    <div style="margin: 10px;">
+      <label for="partner_public_key">Partner Public Key:</label>
+      <input type="text" id="partner_public_key" name="partner_public_key" placeholder="Public Key" style="width: 500px;">
+    </div>
+
+    <div style="margin-top: 30px; margin-left: 10px; margin-right: 10px; margin-bottom: 30px;">
+      <button id="start_button" onclick="runTradePipeline()">Start</button>
+    </div>
+
+    <hr/>
+
+    <h2>Trade Steps</h2>
+    <div style="margin-bottom: 10px;">
+      <label for="contract">Create Trade Contract:</label>
+      <input type="checkbox" id="contract"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="register-trade">Register Trade</label>
+      <input type="checkbox" id="register-trade"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="exchange-token">Exchange Token</label>
+      <input type="checkbox" id="exchange-token"/>
+    </div>
+
+    <div style="margin-bottom: 10px;">
+      <label for="do-your-duties">Do your Duties</label>
+      <input type="checkbox" id="do-your-duties"/>
+    </div>
+  </body>
+</html>
