@@ -116,8 +116,17 @@ pub struct JsTokenExchangedEscrowClient {
 
 #[wasm_bindgen(js_class = TokenExchangedEscrowClient)]
 impl JsTokenExchangedEscrowClient {
-    #[wasm_bindgen(js_name = doYourTradeDuties)]
-    pub async fn do_your_trade_duties(self) -> Result<()> {
-        self.inner.do_your_trade_duties().await.map_err(into_err)
+    #[wasm_bindgen(js_name = finalizeSuccessfulTrade)]
+    pub async fn finalize_successful_trade(self) -> Result<()> {
+        self.inner
+            .finalize_successful_trade()
+            .await
+            .map_err(into_err)
+    }
+
+    #[wasm_bindgen(js_name = requestMediation)]
+    pub async fn request_mediation(self) -> Result<()> {
+        // TBD
+        self.inner.request_mediation().await.map_err(into_err)
     }
 }

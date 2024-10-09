@@ -82,22 +82,24 @@ impl RegisteredEscrowClient {
         match self.trade_mode {
             TradeMode::Buyer => {
                 // todo: store the sent token in next instance
-                self.send_trade_token().await?;
+                let trade_token = self.send_trade_token().await?;
                 Ok(TokenExchangedEscrowClient {
                     _nostr_client: self.nostr_client,
                     _ecash_wallet: self.ecash_wallet,
                     _escrow_contract: self.escrow_contract,
                     trade_mode: self.trade_mode,
+                    _unsigned_token: trade_token,
                 })
             }
             TradeMode::Seller => {
                 // todo: store the received token in next instance
-                self.receive_and_validate_trade_token().await?;
+                let trade_token = self.receive_and_validate_trade_token().await?;
                 Ok(TokenExchangedEscrowClient {
                     _nostr_client: self.nostr_client,
                     _ecash_wallet: self.ecash_wallet,
                     _escrow_contract: self.escrow_contract,
                     trade_mode: self.trade_mode,
+                    _unsigned_token: trade_token,
                 })
             }
         }
@@ -147,25 +149,46 @@ pub struct TokenExchangedEscrowClient {
     _ecash_wallet: ClientEcashWallet,
     _escrow_contract: TradeContract,
     trade_mode: TradeMode,
+    _unsigned_token: Token,
 }
 
 impl TokenExchangedEscrowClient {
     /// Depending on the trade mode deliver product/service or sign the token after receiving the service.
     ///
     /// The state after this operation is duties fulfilled.
-    pub async fn do_your_trade_duties(&self) -> anyhow::Result<()> {
-        // todo: as seller send product and proof of delivery (oracle) to seller.
-        // await signature or begin dispute
-
-        // todo: as buyer either send signature or begin dispute
+    pub async fn finalize_successful_trade(&self) -> anyhow::Result<()> {
         match self.trade_mode {
             TradeMode::Buyer => {
-                trace!("Payed invoince and waiting for delivery...");
+                // sign escrow token for seller to unlock his funds
+                let signed_token = self
+                    ._ecash_wallet
+                    .sign_token(self._unsigned_token.clone())?;
+
+                // send signature to seller
+                // self.nostr_client.client.send_private_msg(self._escrow_contract.npubkey_seller, &signature, None).await?;
+                trace!("Sent signature to seller, trade is complete.");
             }
             TradeMode::Seller => {
-                trace!("Got payment and proceeding with delivery...");
+                // receive signed token from buyer
+                // let buyer_signed_token =
+
+                // add sellers own signature
+                // let fully_signed_token
+                trace!("Received signature from buyer, trade is complete.");
+                // now withdraw the sats from inbuilt ecash wallet
             }
         }
         Ok(())
     }
+
+    pub async fn request_mediation(&self) -> anyhow::Result<()> {
+        Ok(())
+    }
+}
+
+pub struct PartiallyFinalizedEscrowClient {
+    _ecash_wallet: ClientEcashWallet,
+    _escrow_contract: TradeContract,
+    _trade_mode: TradeMode,
+    _partially_signed_token: Token,
 }

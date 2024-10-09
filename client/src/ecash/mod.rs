@@ -100,4 +100,13 @@ impl ClientEcashWallet {
             .verify_token_p2pk(escrow_token, spending_conditions)?;
         Ok(())
     }
+
+    pub fn sign_token(&self, token_to_sign: Token) -> anyhow::Result<Token> {
+        for (_, proofs) in token_to_sign.proofs() {
+            for mut proof in proofs {
+                proof.sign_p2pk(self._secret.clone())?;
+            }
+        }
+        Ok(token_to_sign)
+    }
 }
